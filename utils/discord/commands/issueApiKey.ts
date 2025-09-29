@@ -3,6 +3,9 @@ import {
     EmbedBuilder,
     SlashCommandBuilder,
 } from 'discord.js'
+import { createApiKey } from '../../services/apiKeyService'
+import { ensureUser, getUserPermissionLevel } from '../../services/userService'
+import type { DiscordCommand } from '../../types'
 
 const isPermitted = (permission: string | null | undefined) =>
     permission === 'granted' || permission === 'admin'
@@ -15,7 +18,7 @@ export const issueApiKeyCommand = {
             option
                 .setName('name')
                 .setDescription('APIキーの名前 (用途識別に利用)')
-                .setRequired(true)
+                .setRequired(false) // Made optional
                 .setMaxLength(100)
         ) as SlashCommandBuilder,
     async execute(interaction: ChatInputCommandInteraction) {
@@ -31,14 +34,14 @@ export const issueApiKeyCommand = {
             return
         }
 
-        const name = interaction.options.getString('name', true)
+        const name = interaction.options.getString('name') || undefined
         const apiKey = await createApiKey(interaction.user.id, name)
 
         const dmEmbed = new EmbedBuilder()
             .setTitle('APIキーを発行しました')
             .setDescription('安全な場所に保管してください。')
             .addFields(
-                { name: '名前', value: name },
+                { name: '名前', value: apiKey.name },
                 { name: '末尾4桁', value: apiKey.lastFour }
             )
             .setColor(0x2ecc71)

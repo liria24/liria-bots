@@ -1,5 +1,6 @@
 import { and, eq, isNull } from 'drizzle-orm'
-import { createHash, randomBytes, randomUUID } from 'node:crypto'
+import { createHash } from 'node:crypto'
+import { nanoid } from 'nanoid'
 import { getDb } from '../db'
 import { apiKeys } from '../db/schema'
 
@@ -30,8 +31,8 @@ const parseApiKey = (rawKey: string): ParsedApiKey | null => {
 }
 
 export const generateApiKeySecret = () => {
-    const id = randomUUID()
-    const secret = randomBytes(32).toString('base64url')
+    const id = nanoid()
+    const secret = nanoid(64) // Using nanoid for secret generation as well
     const rawKey = `${KEY_PREFIX}_${id}${KEY_SEPARATOR}${secret}`
     const keyHash = hashSecret(secret)
 
@@ -44,21 +45,24 @@ export const generateApiKeySecret = () => {
     }
 }
 
-export const createApiKey = async (userId: string, name: string) => {
+export const createApiKey = async (userId: string, name?: string) => {
     const db = getDb()
     const now = new Date()
     const { id, rawKey, keyHash, lastFour } = generateApiKeySecret()
+    
+    // Generate default name with nanoid if not provided
+    const finalName = name || nanoid(10)
 
     await db.insert(apiKeys).values({
         id,
         userId,
-        name,
+        name: finalName,
         keyHash,
         lastFour,
         createdAt: now,
     })
 
-    return { id, rawKey, lastFour }
+    return { id, rawKey, lastFour, name: finalName }
 }
 
 export const verifyApiKey = async (rawKey: string) => {
