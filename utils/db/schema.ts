@@ -1,5 +1,12 @@
 import { relations } from 'drizzle-orm'
-import { index, pgEnum, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
+import {
+    foreignKey,
+    index,
+    pgEnum,
+    pgTable,
+    text,
+    timestamp,
+} from 'drizzle-orm/pg-core'
 
 export const permissionEnum = pgEnum('permission_level', ['granted', 'admin'])
 export const permissionRequestStatusEnum = pgEnum('permission_request_status', [
@@ -8,54 +15,83 @@ export const permissionRequestStatusEnum = pgEnum('permission_request_status', [
     'rejected',
 ])
 
-export const users = pgTable('users', {
-    id: text('id').primaryKey(), // Discord user ID
-    username: text('username'),
-    permissionLevel: permissionEnum('permission_level'),
-    createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
-    updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow().notNull(),
-}, (table) => ({
-    // Index for finding users by permission level
-    permissionLevelIdx: index('users_permission_level_idx').on(table.permissionLevel),
-}))
+export const users = pgTable(
+    'users',
+    {
+        id: text('id').primaryKey(),
+        username: text('username'),
+        permissionLevel: permissionEnum('permission_level'),
+        createdAt: timestamp('created_at', { mode: 'date' })
+            .defaultNow()
+            .notNull(),
+        updatedAt: timestamp('updated_at', { mode: 'date' })
+            .defaultNow()
+            .notNull(),
+    },
+    (table) => [index('users_permission_level_idx').on(table.permissionLevel)]
+)
 
-export const apiKeys = pgTable('api_keys', {
-    id: uuid('id').primaryKey(),
-    userId: text('user_id')
-        .references(() => users.id, { onDelete: 'cascade' })
-        .notNull(),
-    name: text('name').notNull(),
-    keyHash: text('key_hash').notNull(),
-    lastFour: text('last_four').notNull(),
-    createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
-    lastUsedAt: timestamp('last_used_at', { mode: 'date' }),
-    revokedAt: timestamp('revoked_at', { mode: 'date' }),
-}, (table) => ({
-    // Index for finding active keys by user
-    userActiveKeysIdx: index('api_keys_user_active_idx').on(table.userId, table.revokedAt),
-    // Index for key verification by id
-    keyVerifyIdx: index('api_keys_verify_idx').on(table.id, table.revokedAt),
-    // Index for key hash lookups
-    keyHashIdx: index('api_keys_hash_idx').on(table.keyHash),
-}))
+export const apiKeys = pgTable(
+    'api_keys',
+    {
+        id: text('id').primaryKey(),
+        userId: text('user_id').notNull(),
+        name: text('name').notNull(),
+        keyHash: text('key_hash').notNull(),
+        lastFour: text('last_four').notNull(),
+        createdAt: timestamp('created_at', { mode: 'date' })
+            .defaultNow()
+            .notNull(),
+        lastUsedAt: timestamp('last_used_at', { mode: 'date' }),
+        revokedAt: timestamp('revoked_at', { mode: 'date' }),
+    },
+    (table) => [
+        index('api_keys_user_active_idx').on(table.userId, table.revokedAt),
+        index('api_keys_verify_idx').on(table.id, table.revokedAt),
+        index('api_keys_hash_idx').on(table.keyHash),
+        foreignKey({
+            name: 'api_keys_user_id_fkey',
+            columns: [table.userId],
+            foreignColumns: [users.id],
+        })
+            .onDelete('cascade')
+            .onUpdate('cascade'),
+    ]
+)
 
-export const permissionRequests = pgTable('permission_requests', {
-    id: uuid('id').primaryKey(),
-    requesterId: text('requester_id')
-        .references(() => users.id, { onDelete: 'cascade' })
-        .notNull(),
-    status: permissionRequestStatusEnum('status').default('pending').notNull(),
-    createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
-    updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow().notNull(),
-    resolvedBy: text('resolved_by').references(() => users.id),
-    resolvedAt: timestamp('resolved_at', { mode: 'date' }),
-    adminMessageId: text('admin_message_id'),
-}, (table) => ({
-    // Index for finding pending requests by requester
-    requesterStatusIdx: index('permission_requests_requester_status_idx').on(table.requesterId, table.status),
-    // Index for finding requests by status
-    statusIdx: index('permission_requests_status_idx').on(table.status),
-}))
+export const permissionRequests = pgTable(
+    'permission_requests',
+    {
+        id: text('id').primaryKey(),
+        requesterId: text('requester_id').notNull(),
+        status: permissionRequestStatusEnum('status')
+            .default('pending')
+            .notNull(),
+        createdAt: timestamp('created_at', { mode: 'date' })
+            .defaultNow()
+            .notNull(),
+        updatedAt: timestamp('updated_at', { mode: 'date' })
+            .defaultNow()
+            .notNull(),
+        resolvedBy: text('resolved_by').references(() => users.id),
+        resolvedAt: timestamp('resolved_at', { mode: 'date' }),
+        adminMessageId: text('admin_message_id'),
+    },
+    (table) => [
+        index('permission_requests_requester_status_idx').on(
+            table.requesterId,
+            table.status
+        ),
+        index('permission_requests_status_idx').on(table.status),
+        foreignKey({
+            name: 'permission_requests_requester_id_fkey',
+            columns: [table.requesterId],
+            foreignColumns: [users.id],
+        })
+            .onDelete('cascade')
+            .onUpdate('cascade'),
+    ]
+)
 
 export const usersRelations = relations(users, ({ many }) => ({
     apiKeys: many(apiKeys),
