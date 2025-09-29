@@ -1,5 +1,5 @@
 import { relations } from 'drizzle-orm'
-import { pgEnum, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
+import { index, pgEnum, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
 
 export const permissionEnum = pgEnum('permission_level', ['granted', 'admin'])
 export const permissionRequestStatusEnum = pgEnum('permission_request_status', [
@@ -14,7 +14,10 @@ export const users = pgTable('users', {
     permissionLevel: permissionEnum('permission_level'),
     createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow().notNull(),
-})
+}, (table) => ({
+    // Index for finding users by permission level
+    permissionLevelIdx: index('users_permission_level_idx').on(table.permissionLevel),
+}))
 
 export const apiKeys = pgTable('api_keys', {
     id: uuid('id').primaryKey(),
@@ -27,7 +30,14 @@ export const apiKeys = pgTable('api_keys', {
     createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
     lastUsedAt: timestamp('last_used_at', { mode: 'date' }),
     revokedAt: timestamp('revoked_at', { mode: 'date' }),
-})
+}, (table) => ({
+    // Index for finding active keys by user
+    userActiveKeysIdx: index('api_keys_user_active_idx').on(table.userId, table.revokedAt),
+    // Index for key verification by id
+    keyVerifyIdx: index('api_keys_verify_idx').on(table.id, table.revokedAt),
+    // Index for key hash lookups
+    keyHashIdx: index('api_keys_hash_idx').on(table.keyHash),
+}))
 
 export const permissionRequests = pgTable('permission_requests', {
     id: uuid('id').primaryKey(),
@@ -40,7 +50,12 @@ export const permissionRequests = pgTable('permission_requests', {
     resolvedBy: text('resolved_by').references(() => users.id),
     resolvedAt: timestamp('resolved_at', { mode: 'date' }),
     adminMessageId: text('admin_message_id'),
-})
+}, (table) => ({
+    // Index for finding pending requests by requester
+    requesterStatusIdx: index('permission_requests_requester_status_idx').on(table.requesterId, table.status),
+    // Index for finding requests by status
+    statusIdx: index('permission_requests_status_idx').on(table.status),
+}))
 
 export const usersRelations = relations(users, ({ many }) => ({
     apiKeys: many(apiKeys),
