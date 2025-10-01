@@ -1,4 +1,5 @@
 import {
+    ActivityType,
     Client,
     Collection,
     Events,
@@ -9,6 +10,7 @@ import {
     type RESTPostAPIChatInputApplicationCommandsJSONBody,
     type Snowflake,
 } from 'discord.js'
+import { getLatestBotStatus } from '../services/statusService'
 
 const logger = createConsola({ defaults: { tag: 'discord' } })
 
@@ -114,8 +116,27 @@ export const startDiscordBot = async (
         commandMap.set(command.data.name, command)
     }
 
-    client.once(Events.ClientReady, (readyClient) => {
+    client.once(Events.ClientReady, async (readyClient) => {
         logger.success(`Bot logged in as ${readyClient.user.tag}`)
+
+        // 最後に設定されたステータスを復元
+        try {
+            const latestStatus = await getLatestBotStatus()
+            if (latestStatus) {
+                readyClient.user.setActivity(latestStatus.message, {
+                    type: latestStatus.activityType as ActivityType,
+                })
+                logger.info(
+                    {
+                        message: latestStatus.message,
+                        type: latestStatus.activityType,
+                    },
+                    'Restored last bot status'
+                )
+            }
+        } catch (error) {
+            logger.warn({ error }, 'Failed to restore last bot status')
+        }
     })
 
     const interactionHandler = createInteractionHandler(commandMap)

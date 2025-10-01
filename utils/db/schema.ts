@@ -2,6 +2,7 @@ import { relations } from 'drizzle-orm'
 import {
     foreignKey,
     index,
+    integer,
     pgEnum,
     pgTable,
     text,
@@ -118,6 +119,36 @@ export const permissionRequestsRelations = relations(
         }),
     })
 )
+
+export const botStatuses = pgTable(
+    'bot_statuses',
+    {
+        id: text('id').primaryKey(),
+        message: text('message').notNull(),
+        activityType: integer('activity_type').notNull(),
+        setBy: text('set_by').notNull(),
+        createdAt: timestamp('created_at', { mode: 'date' })
+            .defaultNow()
+            .notNull(),
+    },
+    (table) => [
+        index('bot_statuses_created_at_idx').on(table.createdAt),
+        foreignKey({
+            name: 'bot_statuses_set_by_fkey',
+            columns: [table.setBy],
+            foreignColumns: [users.id],
+        })
+            .onDelete('cascade')
+            .onUpdate('cascade'),
+    ]
+)
+
+export const botStatusesRelations = relations(botStatuses, ({ one }) => ({
+    setByUser: one(users, {
+        fields: [botStatuses.setBy],
+        references: [users.id],
+    }),
+}))
 
 export type PermissionLevel = (typeof permissionEnum.enumValues)[number]
 export type PermissionRequestStatus =
