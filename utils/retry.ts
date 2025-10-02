@@ -1,4 +1,5 @@
 import retry from 'async-retry'
+import { createConsola } from 'consola'
 
 const logger = createConsola({ defaults: { tag: 'db-retry' } })
 
@@ -10,8 +11,9 @@ export interface RetryOptions {
     retryableErrors?: string[]
 }
 
-const DEFAULT_RETRYABLE_ERRORS = [
+export const DEFAULT_RETRYABLE_ERRORS = [
     'ECONNREFUSED',
+    'connect ECONNREFUSED',
     'ENOTFOUND',
     'ETIMEDOUT',
     'ECONNRESET',
@@ -22,7 +24,7 @@ const DEFAULT_RETRYABLE_ERRORS = [
     'SSL SYSCALL error',
 ]
 
-const isRetryableError = (
+export const isRetryableError = (
     error: unknown,
     retryableErrors: string[] = DEFAULT_RETRYABLE_ERRORS
 ): boolean => {
