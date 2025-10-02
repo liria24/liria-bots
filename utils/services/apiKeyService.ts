@@ -1,6 +1,6 @@
+import { createHash } from 'node:crypto'
 import { and, eq, isNull } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
-import { createHash } from 'node:crypto'
 
 const KEY_PREFIX = 'liria_sk'
 const KEY_SEPARATOR = '.'
@@ -10,8 +10,7 @@ interface ParsedApiKey {
     secret: string
 }
 
-const hashSecret = (secret: string) =>
-    createHash('sha256').update(secret).digest('hex')
+const hashSecret = (secret: string) => createHash('sha256').update(secret).digest('hex')
 
 const parseApiKey = (rawKey: string): ParsedApiKey | null => {
     if (!rawKey || typeof rawKey !== 'string') return null
@@ -84,18 +83,12 @@ export const verifyApiKey = async (rawKey: string) => {
 
 export const markApiKeyUsed = async (id: string) => {
     const db = await getDb()
-    await db
-        .update(apiKeys)
-        .set({ lastUsedAt: new Date() })
-        .where(eq(apiKeys.id, id))
+    await db.update(apiKeys).set({ lastUsedAt: new Date() }).where(eq(apiKeys.id, id))
 }
 
 export const revokeApiKey = async (id: string) => {
     const db = await getDb()
-    await db
-        .update(apiKeys)
-        .set({ revokedAt: new Date() })
-        .where(eq(apiKeys.id, id))
+    await db.update(apiKeys).set({ revokedAt: new Date() }).where(eq(apiKeys.id, id))
 }
 
 export const listApiKeysForUser = async (userId: string) => {

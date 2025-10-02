@@ -24,17 +24,12 @@ export const getUserById = async (id: string) => {
     return db.query.users.findFirst({ where: eq(users.id, id) })
 }
 
-export const getUserPermissionLevel = async (
-    id: string
-): Promise<PermissionLevel | null> => {
+export const getUserPermissionLevel = async (id: string): Promise<PermissionLevel | null> => {
     const record = await getUserById(id)
     return record?.permissionLevel ?? null
 }
 
-export const setUserPermission = async (
-    id: string,
-    permission: PermissionLevel | null
-) => {
+export const setUserPermission = async (id: string, permission: PermissionLevel | null) => {
     const db = await getDb()
     const now = new Date()
 

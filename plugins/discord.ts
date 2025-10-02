@@ -12,25 +12,19 @@ export default defineNitroPlugin(async (nitroApp) => {
     const existingController = getDiscordBotController()
 
     if (existingController?.isReady()) {
-        logger.info(
-            'Discord bot is already running. Reusing existing instance.'
-        )
+        logger.info('Discord bot is already running. Reusing existing instance.')
         return
     }
 
     const { discord } = useRuntimeConfig()
 
     if (!discord.token) {
-        logger.warn(
-            'DISCORD_TOKEN is not set. Discord bot will not be started.'
-        )
+        logger.warn('DISCORD_TOKEN is not set. Discord bot will not be started.')
         return
     }
 
     if (!discord.clientId) {
-        logger.warn(
-            'DISCORD_CLIENT_ID is not set. Discord bot will not be started.'
-        )
+        logger.warn('DISCORD_CLIENT_ID is not set. Discord bot will not be started.')
         return
     }
 

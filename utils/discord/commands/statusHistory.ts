@@ -8,8 +8,7 @@ import { getBotStatusHistory } from '../../services/statusService'
 import { ensureUser, getUserPermissionLevel } from '../../services/userService'
 import type { DiscordCommand } from '../../types'
 
-const isAdmin = (permission: string | null | undefined) =>
-    permission === 'admin'
+const isAdmin = (permission: string | null | undefined) => permission === 'admin'
 
 const activityTypeNames: Record<number, string> = {
     [ActivityType.Playing]: 'Playing',
@@ -57,16 +56,12 @@ export const statusHistoryCommand = {
             const embed = new EmbedBuilder()
                 .setTitle('📜 Botステータス変更履歴')
                 .setColor(0x5865f2)
-                .setDescription(
-                    `最新${history.length}件のステータス変更履歴を表示しています。`
-                )
+                .setDescription(`最新${history.length}件のステータス変更履歴を表示しています。`)
                 .setTimestamp()
 
             for (const status of history) {
-                const typeName =
-                    activityTypeNames[status.activityType] ?? 'Unknown'
-                const username =
-                    status.setByUser?.username ?? status.setBy ?? 'Unknown'
+                const typeName = activityTypeNames[status.activityType] ?? 'Unknown'
+                const username = status.setByUser?.username ?? status.setBy ?? 'Unknown'
                 const date = status.createdAt.toLocaleString('ja-JP', {
                     timeZone: 'Asia/Tokyo',
                 })

@@ -36,24 +36,16 @@ export const validateFormData = async <T extends z.ZodTypeAny>(
     return result.data
 }
 
-export const validateParams = async <T extends z.ZodTypeAny>(
-    schema: T
-): Promise<z.infer<T>> => {
-    const result = await getValidatedRouterParams(useEvent(), (body) =>
-        schema.safeParse(body)
-    )
+export const validateParams = async <T extends z.ZodTypeAny>(schema: T): Promise<z.infer<T>> => {
+    const result = await getValidatedRouterParams(useEvent(), (body) => schema.safeParse(body))
 
     if (!result.success) throw result.error
 
     return result.data
 }
 
-export const validateQuery = async <T extends z.ZodTypeAny>(
-    schema: T
-): Promise<z.infer<T>> => {
-    const result = await getValidatedQuery(useEvent(), (query) =>
-        schema.safeParse(query)
-    )
+export const validateQuery = async <T extends z.ZodTypeAny>(schema: T): Promise<z.infer<T>> => {
+    const result = await getValidatedQuery(useEvent(), (query) => schema.safeParse(query))
 
     if (!result.success) throw result.error
 

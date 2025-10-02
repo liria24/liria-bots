@@ -1,9 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import {
-    isRetryableError,
-    retryWithBackoff,
-    type RetryOptions,
-} from '../utils/retry'
+import { isRetryableError, type RetryOptions, retryWithBackoff } from '../utils/retry'
 
 describe('retry utilities', () => {
     test('detects connect ECONNREFUSED in error message as retryable', () => {
@@ -23,9 +19,7 @@ describe('retry utilities', () => {
         const result = await retryWithBackoff(async () => {
             attempts += 1
             if (attempts < 3) {
-                const error = new Error(
-                    'connect ECONNREFUSED 127.0.0.1:5432 during cold start'
-                )
+                const error = new Error('connect ECONNREFUSED 127.0.0.1:5432 during cold start')
                 throw error
             }
 

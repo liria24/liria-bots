@@ -1,14 +1,49 @@
 import { describe, expect, test } from 'bun:test'
-import { testDiscordBotLogin } from './test-helpers'
+import { Client, Events, GatewayIntentBits } from 'discord.js'
+
+const testDiscordBotLogin = async (token: string): Promise<boolean> => {
+    if (!token || typeof token !== 'string') {
+        return false
+    }
+
+    return new Promise((resolve) => {
+        const client = new Client({
+            intents: [GatewayIntentBits.Guilds],
+        })
+
+        // 10秒のタイムアウトを設定
+        const timeout = setTimeout(() => {
+            client.destroy()
+            resolve(false)
+        }, 10000)
+
+        client.once(Events.ClientReady, () => {
+            clearTimeout(timeout)
+            client.destroy()
+            resolve(true)
+        })
+
+        client.on('error', () => {
+            clearTimeout(timeout)
+            client.destroy()
+            resolve(false)
+        })
+
+        // ログインを試行
+        client.login(token).catch(() => {
+            clearTimeout(timeout)
+            client.destroy()
+            resolve(false)
+        })
+    })
+}
 
 describe('Discord Bot Login Test', () => {
     test('環境変数のDISCORD_TOKENでログインが成功するかテスト', async () => {
         const token = process.env.DISCORD_TOKEN
 
         if (!token) {
-            console.log(
-                'DISCORD_TOKEN environment variable is not set. Skipping test.'
-            )
+            console.log('DISCORD_TOKEN environment variable is not set. Skipping test.')
             expect(true).toBe(true) // Skip test
             return
         }

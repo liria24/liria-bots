@@ -1,4 +1,4 @@
-import { type APIEmbed, type MessageCreateOptions } from 'discord.js'
+import type { APIEmbed, MessageCreateOptions } from 'discord.js'
 
 const embedFieldSchema = z.object({
     name: z.string(),
@@ -47,11 +47,8 @@ const adminMessageBodySchema = z
     })
     .refine(
         (data) => {
-            const hasContent =
-                typeof data.content === 'string' &&
-                data.content.trim().length > 0
-            const hasEmbeds =
-                Array.isArray(data.embeds) && data.embeds.length > 0
+            const hasContent = typeof data.content === 'string' && data.content.trim().length > 0
+            const hasEmbeds = Array.isArray(data.embeds) && data.embeds.length > 0
             return hasContent || hasEmbeds
         },
         {
@@ -134,15 +131,10 @@ export default defineEventHandler(async (event) => {
     const client = controller.client
 
     try {
-        const channel = await client.channels.fetch(
-            config.liria.discordChannelId
-        )
+        const channel = await client.channels.fetch(config.liria.discordChannelId)
 
         if (!channel || !channel.isSendable()) {
-            console.warn(
-                'Configured channel is not sendable:',
-                config.liria.discordChannelId
-            )
+            console.warn('Configured channel is not sendable:', config.liria.discordChannelId)
             return { status: 'skipped' }
         }
 

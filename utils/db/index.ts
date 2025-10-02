@@ -5,8 +5,8 @@ import { Pool, type PoolClient, type QueryResult } from 'pg'
 import {
     DEFAULT_RETRYABLE_ERRORS,
     isRetryableError,
-    retryWithBackoff,
     type RetryOptions,
+    retryWithBackoff,
 } from '../retry'
 import * as schema from './schema'
 
@@ -59,10 +59,7 @@ const invalidateDbClient = async (pool?: Pool): Promise<void> => {
             } catch (error) {
                 logger.warn(
                     {
-                        error:
-                            error instanceof Error
-                                ? error.message
-                                : String(error),
+                        error: error instanceof Error ? error.message : String(error),
                     },
                     'Failed to close database pool while resetting'
                 )
@@ -89,8 +86,7 @@ const runPoolOperationWithRetry = async <T>(
         if (isRetryableError(error, POOL_RETRY_OPTIONS.retryableErrors)) {
             logger.warn(
                 {
-                    error:
-                        error instanceof Error ? error.message : String(error),
+                    error: error instanceof Error ? error.message : String(error),
                 },
                 'Database operation failed after retry attempts; resetting pool'
             )
@@ -108,11 +104,7 @@ const attachPoolRetry = (pool: Pool): void => {
 
     const originalConnect = pool.connect.bind(pool)
     const connectWithRetry: Pool['connect'] = ((
-        callback?: (
-            err: Error,
-            client: PoolClient,
-            done: (release?: any) => void
-        ) => void
+        callback?: (err: Error, client: PoolClient, done: (release?) => void) => void
     ) => {
         if (callback) {
             return originalConnect(callback)
@@ -130,11 +122,7 @@ const attachPoolRetry = (pool: Pool): void => {
         }
 
         return runPoolOperationWithRetry(pool, () =>
-            (
-                originalQuery as (
-                    ...queryArgs: unknown[]
-                ) => Promise<QueryResult<unknown>>
-            )(...args)
+            (originalQuery as (...queryArgs: unknown[]) => Promise<QueryResult<unknown>>)(...args)
         )
     }) as Pool['query']
 
@@ -206,13 +194,19 @@ const initializeDb = async (): Promise<void> => {
 export const getDb = async (): Promise<NodePgDatabase<Schema>> => {
     await initializeDb()
     const globalRef = globalThis as GlobalWithDb
-    return globalRef[DB_SYMBOL]!.db
+    const dbClient = globalRef[DB_SYMBOL]
+    if (!dbClient) throw new Error('Database client is not initialized')
+
+    return dbClient.db
 }
 
 export const getDbPool = async (): Promise<Pool> => {
     await initializeDb()
     const globalRef = globalThis as GlobalWithDb
-    return globalRef[DB_SYMBOL]!.pool
+    const dbClient = globalRef[DB_SYMBOL]
+    if (!dbClient) throw new Error('Database client is not initialized')
+
+    return dbClient.pool
 }
 
 export { schema }

@@ -1,7 +1,7 @@
 import {
     ActionRowBuilder,
     ButtonBuilder,
-    ButtonInteraction,
+    type ButtonInteraction,
     ButtonStyle,
     EmbedBuilder,
 } from 'discord.js'
@@ -68,11 +68,7 @@ export const handlePermissionRequestButton = async (
         await setUserPermission(request.requesterId, 'granted')
     }
 
-    await updatePermissionRequestStatus(
-        requestId,
-        newStatus,
-        interaction.user.id
-    )
+    await updatePermissionRequestStatus(requestId, newStatus, interaction.user.id)
 
     const originalEmbed = interaction.message.embeds[0]
     const updatedEmbed = originalEmbed
@@ -114,9 +110,7 @@ export const handlePermissionRequestButton = async (
     })
 
     try {
-        const requester = await interaction.client.users.fetch(
-            request.requesterId
-        )
+        const requester = await interaction.client.users.fetch(request.requesterId)
         await requester.send({
             content:
                 newStatus === 'approved'

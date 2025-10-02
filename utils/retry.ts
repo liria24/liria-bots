@@ -32,14 +32,10 @@ export const isRetryableError = (
 
     const errorMessage = error instanceof Error ? error.message : String(error)
     const errorCode =
-        error && typeof error === 'object' && 'code' in error
-            ? String(error.code)
-            : ''
+        error && typeof error === 'object' && 'code' in error ? String(error.code) : ''
 
     return retryableErrors.some(
-        (retryableError) =>
-            errorMessage.includes(retryableError) ||
-            errorCode === retryableError
+        (retryableError) => errorMessage.includes(retryableError) || errorCode === retryableError
     )
 }
 
@@ -64,10 +60,7 @@ export async function retryWithBackoff<T>(
                 if (!isRetryableError(error, retryableErrors)) {
                     logger.error(
                         {
-                            error:
-                                error instanceof Error
-                                    ? error.message
-                                    : String(error),
+                            error: error instanceof Error ? error.message : String(error),
                         },
                         'Non-retryable error encountered'
                     )
@@ -79,10 +72,7 @@ export async function retryWithBackoff<T>(
                     {
                         attempt: attemptNumber,
                         maxRetries,
-                        error:
-                            error instanceof Error
-                                ? error.message
-                                : String(error),
+                        error: error instanceof Error ? error.message : String(error),
                     },
                     'Database connection failed, retrying...'
                 )
@@ -100,10 +90,7 @@ export async function retryWithBackoff<T>(
                     {
                         attempt,
                         maxRetries,
-                        error:
-                            error instanceof Error
-                                ? error.message
-                                : String(error),
+                        error: error instanceof Error ? error.message : String(error),
                     },
                     'Retrying database connection...'
                 )

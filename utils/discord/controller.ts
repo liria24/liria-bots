@@ -9,9 +9,7 @@ export const getDiscordBotController = (): DiscordBotController | undefined => {
     return globalRef[CONTROLLER_SYMBOL]
 }
 
-export const setDiscordBotController = (
-    controller: DiscordBotController
-): void => {
+export const setDiscordBotController = (controller: DiscordBotController): void => {
     const globalRef = globalThis as GlobalWithDiscordBot
     globalRef[CONTROLLER_SYMBOL] = controller
 }

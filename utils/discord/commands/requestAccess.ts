@@ -2,9 +2,9 @@ import {
     ActionRowBuilder,
     ButtonBuilder,
     ButtonStyle,
+    type ChatInputCommandInteraction,
     EmbedBuilder,
     SlashCommandBuilder,
-    type ChatInputCommandInteraction,
 } from 'discord.js'
 
 const buildButtonCustomId = (action: 'approve' | 'reject', id: string) =>
@@ -15,10 +15,7 @@ export const requestAccessCommand = {
         .setName('request-access')
         .setDescription('APIキー発行権限 (granted) を管理者に申請します')
         .addStringOption((option) =>
-            option
-                .setName('reason')
-                .setDescription('申請理由 (任意)')
-                .setMaxLength(200)
+            option.setName('reason').setDescription('申請理由 (任意)').setMaxLength(200)
         ) as SlashCommandBuilder,
     async execute(interaction: ChatInputCommandInteraction) {
         await interaction.deferReply({ ephemeral: true })
@@ -27,15 +24,11 @@ export const requestAccessCommand = {
         const permission = await getUserPermissionLevel(interaction.user.id)
 
         if (permission === 'admin' || permission === 'granted') {
-            await interaction.editReply(
-                'すでに API キー発行権限を所持しています。'
-            )
+            await interaction.editReply('すでに API キー発行権限を所持しています。')
             return
         }
 
-        const existingRequest = await findPendingRequestByRequester(
-            interaction.user.id
-        )
+        const existingRequest = await findPendingRequestByRequester(interaction.user.id)
 
         if (existingRequest) {
             await interaction.editReply(
@@ -47,25 +40,19 @@ export const requestAccessCommand = {
         const admins = await listUsersByPermission('admin')
 
         if (!admins.length) {
-            await interaction.editReply(
-                '現在この申請を処理できる管理者が登録されていません。'
-            )
+            await interaction.editReply('現在この申請を処理できる管理者が登録されていません。')
             return
         }
 
         const request = await createPermissionRequest(interaction.user.id)
-        const reason =
-            interaction.options.getString('reason')?.trim() || '未入力'
+        const reason = interaction.options.getString('reason')?.trim() || '未入力'
 
         const embed = new EmbedBuilder()
             .setTitle('API権限リクエスト')
             .setDescription(
                 `${interaction.user.tag} (${interaction.user.id}) が granted 権限をリクエストしました。`
             )
-            .addFields(
-                { name: '理由', value: reason },
-                { name: 'リクエストID', value: request.id }
-            )
+            .addFields({ name: '理由', value: reason }, { name: 'リクエストID', value: request.id })
             .setColor(0xf1c40f)
             .setTimestamp()
 
@@ -79,15 +66,11 @@ export const requestAccessCommand = {
                         new ButtonBuilder()
                             .setLabel('許可')
                             .setStyle(ButtonStyle.Success)
-                            .setCustomId(
-                                buildButtonCustomId('approve', request.id)
-                            ),
+                            .setCustomId(buildButtonCustomId('approve', request.id)),
                         new ButtonBuilder()
                             .setLabel('拒否')
                             .setStyle(ButtonStyle.Danger)
-                            .setCustomId(
-                                buildButtonCustomId('reject', request.id)
-                            )
+                            .setCustomId(buildButtonCustomId('reject', request.id))
                     ),
                 ]
 
@@ -112,9 +95,7 @@ export const requestAccessCommand = {
             await saveAdminMessageId(request.id, savedMessageId)
         }
 
-        await interaction.editReply(
-            '申請を管理者に送信しました。結果が届くまでお待ちください。'
-        )
+        await interaction.editReply('申請を管理者に送信しました。結果が届くまでお待ちください。')
     },
 } satisfies DiscordCommand
 

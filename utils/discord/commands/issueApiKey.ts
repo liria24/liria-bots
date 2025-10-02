@@ -1,8 +1,4 @@
-import {
-    type ChatInputCommandInteraction,
-    EmbedBuilder,
-    SlashCommandBuilder,
-} from 'discord.js'
+import { type ChatInputCommandInteraction, EmbedBuilder, SlashCommandBuilder } from 'discord.js'
 
 const isPermitted = (permission: string | null | undefined) =>
     permission === 'granted' || permission === 'admin'
@@ -57,9 +53,7 @@ export const issueApiKeyCommand = {
             return
         }
 
-        await interaction.editReply(
-            'APIキーをDMで送信しました。DMをご確認ください。'
-        )
+        await interaction.editReply('APIキーをDMで送信しました。DMをご確認ください。')
     },
 } satisfies DiscordCommand
 

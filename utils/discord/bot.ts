@@ -1,13 +1,13 @@
 import {
-    ActivityType,
+    type ActivityType,
+    type ChatInputCommandInteraction,
     Client,
     Collection,
     Events,
     GatewayIntentBits,
     REST,
-    Routes,
-    type ChatInputCommandInteraction,
     type RESTPostAPIChatInputApplicationCommandsJSONBody,
+    Routes,
     type Snowflake,
 } from 'discord.js'
 import { getLatestBotStatus } from '../services/statusService'
@@ -27,14 +27,13 @@ export interface DiscordBotController {
     shutdown: () => Promise<void>
 }
 
-const registerSlashCommands = async (
-    options: DiscordBotOptions
-): Promise<void> => {
+const registerSlashCommands = async (options: DiscordBotOptions): Promise<void> => {
     const { token, clientId, guildId, commands } = options
     const rest = new REST({ version: '10' }).setToken(token)
 
-    const slashPayload: RESTPostAPIChatInputApplicationCommandsJSONBody[] =
-        commands.map((command) => command.data.toJSON())
+    const slashPayload: RESTPostAPIChatInputApplicationCommandsJSONBody[] = commands.map(
+        (command) => command.data.toJSON()
+    )
 
     const route = guildId
         ? Routes.applicationGuildCommands(clientId, guildId)
@@ -57,9 +56,7 @@ const createInteractionHandler = (
         const command = commandMap.get(interaction.commandName)
 
         if (!command) {
-            logger.warn(
-                `Received interaction for unknown command: ${interaction.commandName}`
-            )
+            logger.warn(`Received interaction for unknown command: ${interaction.commandName}`)
             await interaction.reply({
                 content: 'This command is not available anymore.',
                 ephemeral: true,
@@ -80,10 +77,7 @@ const createInteractionHandler = (
             )
             await command.execute(interaction)
         } catch (error) {
-            logger.error(
-                { error },
-                `Error while executing command ${interaction.commandName}`
-            )
+            logger.error({ error }, `Error while executing command ${interaction.commandName}`)
 
             if (interaction.replied || interaction.deferred) {
                 await interaction.followUp({

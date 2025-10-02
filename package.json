@@ -3,6 +3,7 @@
     "version": "1.0.0",
     "type": "module",
     "scripts": {
+        "preinstall": "nitro prepare",
         "build": "nitro build",
         "dev": "nitro dev",
         "preview": "nitro preview",
@@ -20,15 +21,14 @@
         "zod": "^4.1.11"
     },
     "devDependencies": {
+        "@biomejs/biome": "2.2.4",
         "@types/async-retry": "^1.4.9",
         "@types/bun": "^1.2.23",
-        "@types/node": "^24.5.2",
+        "@types/node": "^24.6.2",
         "@types/pg": "^8.15.5",
         "consola": "^3.4.2",
         "drizzle-kit": "^0.31.5",
-        "prettier": "^3.6.2",
-        "prettier-plugin-organize-imports": "^4.3.0",
-        "typescript": "5.9.2"
+        "typescript": "5.9.3"
     },
     "engines": {
         "node": ">=20.0.0"

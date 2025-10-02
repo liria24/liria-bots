@@ -1,14 +1,9 @@
-import {
-    ActivityType,
-    type ChatInputCommandInteraction,
-    SlashCommandBuilder,
-} from 'discord.js'
+import { ActivityType, type ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js'
 import { saveBotStatus } from '../../services/statusService'
 import { ensureUser, getUserPermissionLevel } from '../../services/userService'
 import type { DiscordCommand } from '../../types'
 
-const isAdmin = (permission: string | null | undefined) =>
-    permission === 'admin'
+const isAdmin = (permission: string | null | undefined) => permission === 'admin'
 
 const activityTypeChoices = [
     { name: 'Playing', value: ActivityType.Playing },
@@ -50,8 +45,7 @@ export const setStatusCommand = {
         }
 
         const message = interaction.options.getString('message', true)
-        const activityType =
-            interaction.options.getInteger('type') ?? ActivityType.Playing
+        const activityType = interaction.options.getInteger('type') ?? ActivityType.Playing
 
         try {
             interaction.client.user?.setActivity(message, {
@@ -66,17 +60,14 @@ export const setStatusCommand = {
             })
 
             const activityTypeName =
-                activityTypeChoices.find((c) => c.value === activityType)
-                    ?.name ?? 'Playing'
+                activityTypeChoices.find((c) => c.value === activityType)?.name ?? 'Playing'
 
             await interaction.editReply(
                 `✅ Botのステータスを更新しました:\n**${activityTypeName}**: ${message}`
             )
         } catch (error) {
             console.error('Failed to set status', error)
-            await interaction.editReply(
-                'ステータスの更新に失敗しました。もう一度お試しください。'
-            )
+            await interaction.editReply('ステータスの更新に失敗しました。もう一度お試しください。')
         }
     },
 } satisfies DiscordCommand
