@@ -1,3 +1,4 @@
+import { createConsola } from 'consola'
 import {
     type ActivityType,
     type ChatInputCommandInteraction,

@@ -1,3 +1,5 @@
+import { createConsola } from 'consola'
+
 const logger = createConsola({ defaults: { tag: 'discord' } })
 
 export default defineNitroPlugin(async (nitroApp) => {

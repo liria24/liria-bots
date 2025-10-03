@@ -29,10 +29,6 @@ export default defineNitroConfig({
     imports: {
         imports: [
             {
-                name: 'createConsola',
-                from: 'consola',
-            },
-            {
                 name: 'z',
                 from: 'zod',
             },
