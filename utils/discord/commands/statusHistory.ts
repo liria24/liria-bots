@@ -4,9 +4,6 @@ import {
     EmbedBuilder,
     SlashCommandBuilder,
 } from 'discord.js'
-import { getBotStatusHistory } from '../../services/statusService'
-import { ensureUser, getUserPermissionLevel } from '../../services/userService'
-import type { DiscordCommand } from '../../types'
 
 const isAdmin = (permission: string | null | undefined) => permission === 'admin'
 

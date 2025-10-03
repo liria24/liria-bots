@@ -1,11 +1,3 @@
-import { startDiscordBot } from '../utils/discord/bot'
-import { discordCommands } from '../utils/discord/commands'
-import {
-    clearDiscordBotController,
-    getDiscordBotController,
-    setDiscordBotController,
-} from '../utils/discord/controller'
-
 const logger = createConsola({ defaults: { tag: 'discord' } })
 
 export default defineNitroPlugin(async (nitroApp) => {

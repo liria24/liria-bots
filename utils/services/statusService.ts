@@ -1,7 +1,5 @@
 import { desc } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
-import { getDb } from '../db'
-import { botStatuses } from '../db/schema'
 
 export interface BotStatusInput {
     message: string

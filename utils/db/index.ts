@@ -2,12 +2,6 @@ import { createConsola } from 'consola'
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres'
 import { drizzle } from 'drizzle-orm/node-postgres'
 import { Pool, type PoolClient, type QueryResult } from 'pg'
-import {
-    DEFAULT_RETRYABLE_ERRORS,
-    isRetryableError,
-    type RetryOptions,
-    retryWithBackoff,
-} from '../retry'
 import * as schema from './schema'
 
 const logger = createConsola({ defaults: { tag: 'db' } })

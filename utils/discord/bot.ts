@@ -10,7 +10,6 @@ import {
     Routes,
     type Snowflake,
 } from 'discord.js'
-import { getLatestBotStatus } from '../services/statusService'
 
 const logger = createConsola({ defaults: { tag: 'discord' } })
 
