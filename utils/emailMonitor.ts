@@ -128,7 +128,9 @@ const forwardEmailToAdmins = async (account: EmailAccount, email: ParsedMail) =>
             { name: '差出人', value: email.from?.text ?? 'Unknown', inline: true },
             { name: '件名', value: email.subject ?? '(件名なし)', inline: true }
         )
-        .setFooter({ text: email.date?.toLocaleString('ja-JP') ?? 'Unknown Time' })
+        .setFooter({
+            text: email.date ? `${email.date?.toLocaleString('ja-JP')} UTC+0000` : 'Unknown Time',
+        })
         .setTimestamp()
 
     // メール本文（プレーンテキスト）を追加

@@ -86,13 +86,12 @@ async function handleListEmails(interaction: ChatInputCommandInteraction) {
             .setTimestamp()
 
         for (const account of accounts) {
-            const status = account.enabled ? '✅ 有効' : '❌ 無効'
             const lastChecked = account.lastCheckedAt
                 ? account.lastCheckedAt.toLocaleString('ja-JP')
                 : '未チェック'
 
             embed.addFields({
-                name: `${account.name} ${status}`,
+                name: account.enabled ? `${account.name}` : `${account.name} ❌ 無効`,
                 value: `Email: ${account.email}\n` + `最終チェック: ${lastChecked}`,
                 inline: false,
             })
