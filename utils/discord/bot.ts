@@ -143,11 +143,16 @@ export const startDiscordBot = async (
 
         if (interaction.isButton()) {
             // 順番にハンドラーをチェック
-            const handledByPermission = await handlePermissionRequestButton(interaction)
-            if (handledByPermission) return
+            const handledByPermissionRequest = await handlePermissionRequestButton(interaction)
+            if (handledByPermissionRequest) return
 
-            const handledByPreference = await handlePreferenceButton(interaction)
-            if (handledByPreference) return
+            const handledByPermissionPrompt = await handlePermissionPromptButton(interaction)
+            if (handledByPermissionPrompt) return
+        }
+
+        if (interaction.isModalSubmit()) {
+            const handledByEmail = await handleEmailModal(interaction)
+            if (handledByEmail) return
         }
     })
 

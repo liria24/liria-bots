@@ -32,7 +32,13 @@ export default defineNitroPlugin(async (nitroApp) => {
 
         setDiscordBotController(controller)
 
+        // メール監視を開始
+        logger.info('Starting email monitoring service')
+        await startEmailMonitoring()
+
         nitroApp.hooks.hook('close', async () => {
+            logger.info('Stopping email monitoring service')
+            stopEmailMonitoring()
             await controller.shutdown()
             clearDiscordBotController()
         })

@@ -22,21 +22,23 @@ export const helpCommand = {
             .setColor(0x5865f2)
 
         // 全ユーザーが使用できるコマンド
-        embed.addFields(
-            {
-                name: '❓ `/help`',
-                value: 'このヘルプメッセージを表示します。',
-                inline: false,
-            },
-            {
+        embed.addFields({
+            name: '❓ `/help`',
+            value: 'このヘルプメッセージを表示します。',
+            inline: false,
+        })
+
+        if (isAdmin)
+            embed.addFields({
                 name: '⚙️ `/preference`',
                 value:
                     '個人設定を管理します。\n\n' +
-                    '・権限リクエストの送信\n' +
-                    (isAdmin ? '・Admin通知DM設定' : ''),
+                    '・`/preference show` - 現在の設定を表示\n' +
+                    '・`/preference set <key> <value>` - 設定を変更\n' +
+                    '  - `admin-dm`: Admin通知DM設定 (on/off)\n' +
+                    '  - `email-interval`: メールチェック間隔 (5-1440分)',
                 inline: false,
-            }
-        )
+            })
 
         // granted または admin 権限が必要なコマンド
         if (hasPermission)
@@ -52,14 +54,26 @@ export const helpCommand = {
 
         // admin 権限が必要なコマンド
         if (isAdmin)
-            embed.addFields({
-                name: '📊 `/status`',
-                value:
-                    'Botのステータスを管理します。\n\n' +
-                    '・`/status set` - Botのステータスメッセージを変更\n' +
-                    '・`/status history` - ステータス変更履歴を表示',
-                inline: false,
-            })
+            embed.addFields(
+                {
+                    name: '📊 `/status`',
+                    value:
+                        'Botのステータスを管理します。\n\n' +
+                        '・`/status set` - Botのステータスメッセージを変更\n' +
+                        '・`/status history` - ステータス変更履歴を表示',
+                    inline: false,
+                },
+                {
+                    name: '📧 `/email`',
+                    value:
+                        'メールアカウントの監視を管理します。\n\n' +
+                        '・`/email list` - 監視中のメールアカウントをリスト表示\n' +
+                        '・`/email add` - 新しいメールアカウントを追加\n' +
+                        '・`/email toggle <name>` - メールアカウントの有効/無効を切り替え\n' +
+                        '・`/email delete <name>` - メールアカウントを削除',
+                    inline: false,
+                }
+            )
 
         embed.addFields({
             name: '\u200b',
@@ -77,7 +91,9 @@ export const helpCommand = {
         else
             embed.addFields({
                 name: '🔐 権限について',
-                value: 'APIキーの作成権限が必要な場合は `/preference` から申請してください。',
+                value:
+                    'APIキーの作成や管理者機能を使用するには権限が必要です。\n' +
+                    '権限が必要なコマンドを実行すると、自動的に権限リクエストの確認が表示されます。',
                 inline: false,
             })
 

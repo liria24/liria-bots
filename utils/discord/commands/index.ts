@@ -1,4 +1,5 @@
 import { apiKeyCommand } from './apiKey'
+import { emailCommand } from './email'
 import { helpCommand } from './help'
 import { preferenceCommand } from './preference'
 import { statusCommand } from './status'
@@ -8,4 +9,5 @@ export const discordCommands: DiscordCommand[] = [
     statusCommand,
     apiKeyCommand,
     preferenceCommand,
+    emailCommand,
 ]

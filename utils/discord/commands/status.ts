@@ -5,8 +5,6 @@ import {
     SlashCommandBuilder,
 } from 'discord.js'
 
-const isAdmin = (permission: string | null | undefined) => permission === 'admin'
-
 const activityTypeChoices = [
     { name: 'Playing', value: ActivityType.Playing },
     { name: 'Streaming', value: ActivityType.Streaming },
@@ -62,13 +60,9 @@ export const statusCommand = {
     async execute(interaction: ChatInputCommandInteraction) {
         await interaction.deferReply({ ephemeral: true })
 
-        await ensureUser(interaction.user.id, interaction.user.tag)
-        const permission = await getUserPermissionLevel(interaction.user.id)
-
-        if (!isAdmin(permission)) {
-            await interaction.editReply(
-                'このコマンドを実行する権限がありません。管理者のみが実行できます。'
-            )
+        // 権限チェック - admin権限がない場合はプロンプトを表示
+        const lacksPermission = await showPermissionPromptIfNeeded(interaction, 'admin')
+        if (lacksPermission) {
             return
         }
 

@@ -1,8 +1,5 @@
 import { type ChatInputCommandInteraction, EmbedBuilder, SlashCommandBuilder } from 'discord.js'
 
-const isPermitted = (permission: string | null | undefined) =>
-    permission === 'granted' || permission === 'admin'
-
 export const apiKeyCommand = {
     data: new SlashCommandBuilder()
         .setName('api-key')
@@ -33,13 +30,9 @@ export const apiKeyCommand = {
     async execute(interaction: ChatInputCommandInteraction) {
         await interaction.deferReply({ ephemeral: true })
 
-        await ensureUser(interaction.user.id, interaction.user.tag)
-        const permission = await getUserPermissionLevel(interaction.user.id)
-
-        if (!isPermitted(permission)) {
-            await interaction.editReply(
-                'APIキーを管理する権限がありません。管理者に権限付与を依頼してください。'
-            )
+        // 権限チェック - 権限がない場合はプロンプトを表示
+        const lacksPermission = await showPermissionPromptIfNeeded(interaction, 'granted')
+        if (lacksPermission) {
             return
         }
 

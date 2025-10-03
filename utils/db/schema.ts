@@ -132,5 +132,36 @@ export const botStatusesRelations = relations(botStatuses, ({ one }) => ({
     }),
 }))
 
+export const emailAccounts = pgTable(
+    'email_accounts',
+    {
+        id: text('id').primaryKey(),
+        name: text('name').notNull(),
+        email: text('email').notNull(),
+        imapHost: text('imap_host').notNull(),
+        imapPort: integer('imap_port').notNull().default(993),
+        imapUser: text('imap_user').notNull(),
+        imapPassword: text('imap_password').notNull(),
+        enabled: boolean('enabled').notNull().default(true),
+        lastCheckedAt: timestamp('last_checked_at', { mode: 'date' }),
+        createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+        updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow().notNull(),
+    },
+    (table) => [
+        index('email_accounts_enabled_idx').on(table.enabled),
+        index('email_accounts_last_checked_idx').on(table.lastCheckedAt),
+    ]
+)
+
+export const emailCheckSettings = pgTable('email_check_settings', {
+    id: text('id').primaryKey().default('singleton'),
+    checkIntervalMinutes: integer('check_interval_minutes').notNull().default(30),
+    updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow().notNull(),
+})
+
+export const emailAccountsRelations = relations(emailAccounts, () => ({
+    // Future: track email messages if needed
+}))
+
 export type PermissionLevel = (typeof permissionEnum.enumValues)[number]
 export type PermissionRequestStatus = (typeof permissionRequestStatusEnum.enumValues)[number]
