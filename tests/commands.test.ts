@@ -2,15 +2,15 @@ import { describe, expect, test } from 'bun:test'
 import { discordCommands } from '../utils/discord/commands'
 
 describe('discordCommands', () => {
-    test('includes hello command', () => {
-        const hello = discordCommands.find((command) => command.data.name === 'hello')
+    test('includes help command', () => {
+        const command = discordCommands.find((item) => item.data.name === 'help')
 
-        expect(hello).toBeDefined()
-        expect(hello?.data.description).toBe('Replies with a friendly greeting.')
+        expect(command).toBeDefined()
+        expect(command?.data.description).toContain('ヘルプ')
     })
 
-    test('includes issue-apikey command', () => {
-        const command = discordCommands.find((item) => item.data.name === 'issue-apikey')
+    test('includes api-key command', () => {
+        const command = discordCommands.find((item) => item.data.name === 'api-key')
 
         expect(command).toBeDefined()
         expect(command?.data.description).toContain('APIキー')
@@ -21,5 +21,12 @@ describe('discordCommands', () => {
 
         expect(command).toBeDefined()
         expect(command?.data.description).toContain('権限')
+    })
+
+    test('includes status command', () => {
+        const command = discordCommands.find((item) => item.data.name === 'status')
+
+        expect(command).toBeDefined()
+        expect(command?.data.description).toContain('ステータス')
     })
 })

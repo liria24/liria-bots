@@ -1,13 +1,11 @@
-import { helloCommand } from './hello'
-import { issueApiKeyCommand } from './issueApiKey'
+import { apiKeyCommand } from './apiKey'
+import { helpCommand } from './help'
 import { requestAccessCommand } from './requestAccess'
-import { setStatusCommand } from './setStatus'
-import { statusHistoryCommand } from './statusHistory'
+import { statusCommand } from './status'
 
 export const discordCommands: DiscordCommand[] = [
-    helloCommand,
-    issueApiKeyCommand,
+    helpCommand,
+    statusCommand,
+    apiKeyCommand,
     requestAccessCommand,
-    setStatusCommand,
-    statusHistoryCommand,
 ]
