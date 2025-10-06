@@ -4,7 +4,8 @@ export default defineConfig({
     schema: './utils/db/schema.ts',
     out: './drizzle',
     dialect: 'postgresql',
+    driver: 'pglite',
     dbCredentials: {
-        url: process.env.DATABASE_URL ?? '',
+        url: process.env.PGLITE_DATA_DIR ?? './postgres/data',
     },
 })

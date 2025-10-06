@@ -1,4 +1,9 @@
-import { type ChatInputCommandInteraction, EmbedBuilder, SlashCommandBuilder } from 'discord.js'
+import {
+    type ChatInputCommandInteraction,
+    EmbedBuilder,
+    MessageFlags,
+    SlashCommandBuilder,
+} from 'discord.js'
 
 export const apiKeyCommand = {
     data: new SlashCommandBuilder()
@@ -28,7 +33,7 @@ export const apiKeyCommand = {
                 )
         ) as SlashCommandBuilder,
     async execute(interaction: ChatInputCommandInteraction) {
-        await interaction.deferReply({ ephemeral: true })
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral })
 
         // 権限チェック - 権限がない場合はプロンプトを表示
         const lacksPermission = await showPermissionPromptIfNeeded(interaction, 'granted')

@@ -2,6 +2,7 @@ import {
     ActivityType,
     type ChatInputCommandInteraction,
     EmbedBuilder,
+    MessageFlags,
     SlashCommandBuilder,
 } from 'discord.js'
 
@@ -58,7 +59,7 @@ export const statusCommand = {
                 )
         ) as SlashCommandBuilder,
     async execute(interaction: ChatInputCommandInteraction) {
-        await interaction.deferReply({ ephemeral: true })
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral })
 
         // 権限チェック - admin権限がない場合はプロンプトを表示
         const lacksPermission = await showPermissionPromptIfNeeded(interaction, 'admin')

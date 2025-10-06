@@ -159,9 +159,5 @@ export const emailCheckSettings = pgTable('email_check_settings', {
     updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow().notNull(),
 })
 
-export const emailAccountsRelations = relations(emailAccounts, () => ({
-    // Future: track email messages if needed
-}))
-
 export type PermissionLevel = (typeof permissionEnum.enumValues)[number]
 export type PermissionRequestStatus = (typeof permissionRequestStatusEnum.enumValues)[number]

@@ -1,11 +1,16 @@
-import { type ChatInputCommandInteraction, EmbedBuilder, SlashCommandBuilder } from 'discord.js'
+import {
+    type ChatInputCommandInteraction,
+    EmbedBuilder,
+    MessageFlags,
+    SlashCommandBuilder,
+} from 'discord.js'
 
 export const helpCommand = {
     data: new SlashCommandBuilder()
         .setName('help')
         .setDescription('Botの使い方とコマンド一覧を表示します') as SlashCommandBuilder,
     async execute(interaction: ChatInputCommandInteraction) {
-        await interaction.deferReply({ ephemeral: true })
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral })
 
         await ensureUser(interaction.user.id, interaction.user.tag)
         const permission = await getUserPermissionLevel(interaction.user.id)

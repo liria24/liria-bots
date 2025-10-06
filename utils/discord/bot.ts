@@ -6,6 +6,7 @@ import {
     Collection,
     Events,
     GatewayIntentBits,
+    MessageFlags,
     REST,
     type RESTPostAPIChatInputApplicationCommandsJSONBody,
     Routes,
@@ -25,6 +26,18 @@ export interface DiscordBotController {
     client: Client
     isReady: () => boolean
     shutdown: () => Promise<void>
+}
+
+let discordBotController: DiscordBotController | undefined
+
+export const getDiscordBotController = (): DiscordBotController | undefined => discordBotController
+
+export const setDiscordBotController = (controller: DiscordBotController): void => {
+    discordBotController = controller
+}
+
+export const clearDiscordBotController = (): void => {
+    discordBotController = undefined
 }
 
 const registerSlashCommands = async (options: DiscordBotOptions): Promise<void> => {
@@ -59,7 +72,7 @@ const createInteractionHandler = (
             logger.warn(`Received interaction for unknown command: ${interaction.commandName}`)
             await interaction.reply({
                 content: 'This command is not available anymore.',
-                ephemeral: true,
+                flags: MessageFlags.Ephemeral,
             })
             return
         }
@@ -82,12 +95,12 @@ const createInteractionHandler = (
             if (interaction.replied || interaction.deferred) {
                 await interaction.followUp({
                     content: 'コマンド実行中にエラーが発生しました。',
-                    ephemeral: true,
+                    flags: MessageFlags.Ephemeral,
                 })
             } else {
                 await interaction.reply({
                     content: 'コマンド実行中にエラーが発生しました。',
-                    ephemeral: true,
+                    flags: MessageFlags.Ephemeral,
                 })
             }
         }
@@ -148,11 +161,6 @@ export const startDiscordBot = async (
 
             const handledByPermissionPrompt = await handlePermissionPromptButton(interaction)
             if (handledByPermissionPrompt) return
-        }
-
-        if (interaction.isModalSubmit()) {
-            const handledByEmail = await handleEmailModal(interaction)
-            if (handledByEmail) return
         }
     })
 

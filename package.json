@@ -7,34 +7,34 @@
         "build": "nitro build",
         "dev": "nitro dev",
         "preview": "nitro preview",
+        "prestart": "drizzle-kit push",
         "start": "node ./.output/server/index.mjs",
         "test": "bun test"
     },
     "dependencies": {
-        "async-retry": "^1.3.3",
-        "discord.js": "^14.22.1",
-        "drizzle-orm": "^0.44.6",
-        "imap": "^0.8.19",
-        "mailparser": "^3.7.4",
-        "nanoid": "^5.1.6",
+        "@electric-sql/pglite": "0.3.10",
+        "async-retry": "1.3.3",
+        "discord.js": "14.22.1",
+        "drizzle-orm": "0.44.6",
+        "imap": "0.8.19",
+        "mailparser": "3.7.4",
+        "nanoid": "5.1.6",
         "nitropack": "2.12.6",
-        "pg": "^8.16.3",
-        "sanitize-html": "^2.17.0",
-        "zod": "^4.1.11"
+        "sanitize-html": "2.17.0",
+        "zod": "4.1.11"
     },
     "devDependencies": {
         "@biomejs/biome": "2.2.5",
-        "@types/async-retry": "^1.4.9",
-        "@types/bun": "^1.2.23",
-        "@types/imap": "^0.8.42",
-        "@types/mailparser": "^3.4.6",
-        "@types/node": "^24.6.2",
-        "@types/pg": "^8.15.5",
-        "consola": "^3.4.2",
-        "drizzle-kit": "^0.31.5",
+        "@types/async-retry": "1.4.9",
+        "@types/bun": "1.2.23",
+        "@types/imap": "0.8.42",
+        "@types/mailparser": "3.4.6",
+        "@types/node": "24.6.2",
+        "consola": "3.4.2",
+        "drizzle-kit": "0.31.5",
         "typescript": "5.9.3"
     },
     "engines": {
-        "node": ">=20.0.0"
+        "node": ">=22.0.0"
     }
 }

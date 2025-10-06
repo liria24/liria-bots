@@ -1,4 +1,9 @@
-import { type ChatInputCommandInteraction, EmbedBuilder, SlashCommandBuilder } from 'discord.js'
+import {
+    type ChatInputCommandInteraction,
+    EmbedBuilder,
+    MessageFlags,
+    SlashCommandBuilder,
+} from 'discord.js'
 
 export const preferenceCommand = {
     data: new SlashCommandBuilder()
@@ -29,7 +34,7 @@ export const preferenceCommand = {
                 )
         ) as SlashCommandBuilder,
     async execute(interaction: ChatInputCommandInteraction) {
-        await interaction.deferReply({ ephemeral: true })
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral })
 
         await ensureUser(interaction.user.id, interaction.user.tag)
         const permission = await getUserPermissionLevel(interaction.user.id)

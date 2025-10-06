@@ -4,6 +4,7 @@ import {
     type ButtonInteraction,
     ButtonStyle,
     EmbedBuilder,
+    MessageFlags,
 } from 'discord.js'
 
 const COMPONENT_PREFIX = 'perm-request'
@@ -20,7 +21,7 @@ export const handlePermissionRequestButton = async (
     if (!action || !requestId) {
         await interaction.reply({
             content: '無効な操作です。',
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         })
         return true
     }
@@ -28,7 +29,7 @@ export const handlePermissionRequestButton = async (
     if (action !== 'approve' && action !== 'reject') {
         await interaction.reply({
             content: 'この操作はサポートされていません。',
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         })
         return true
     }
@@ -39,7 +40,7 @@ export const handlePermissionRequestButton = async (
     if (permission !== 'admin') {
         await interaction.reply({
             content: 'この操作を実行する権限がありません。',
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         })
         return true
     }
@@ -49,7 +50,7 @@ export const handlePermissionRequestButton = async (
     if (!request) {
         await interaction.reply({
             content: 'このリクエストは存在しません。',
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         })
         return true
     }
@@ -57,7 +58,7 @@ export const handlePermissionRequestButton = async (
     if (request.status !== 'pending') {
         await interaction.reply({
             content: 'このリクエストはすでに処理されています。',
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
         })
         return true
     }
@@ -106,7 +107,7 @@ export const handlePermissionRequestButton = async (
 
     await interaction.followUp({
         content: `リクエストを${decisionText}にしました。`,
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
     })
 
     try {

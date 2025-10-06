@@ -3,17 +3,10 @@ export default defineNitroConfig({
 
     preset: 'node-server',
 
-    // 開発モードの設定
-    dev: import.meta.env.NODE_ENV !== 'production',
-
-    // TypeScript設定
-    typescript: {
-        generateTsConfig: true,
-    },
-
     runtimeConfig: {
-        database: {
-            url: import.meta.env.DATABASE_URL || '',
+        key: import.meta.env.KEY,
+        pglite: {
+            dataDir: import.meta.env.PGLITE_DATA_DIR || './postgres/data',
         },
         discord: {
             token: import.meta.env.DISCORD_TOKEN || '',
@@ -24,6 +17,10 @@ export default defineNitroConfig({
         public: {
             appName: 'Discord Bot',
         },
+    },
+
+    routeRules: {
+        '/': { redirect: import.meta.env.DISCORD_INSTALL_LINK },
     },
 
     imports: {
@@ -38,5 +35,6 @@ export default defineNitroConfig({
     experimental: {
         asyncContext: true,
         openAPI: true,
+        wasm: true,
     },
 })

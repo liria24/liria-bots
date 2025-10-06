@@ -29,7 +29,7 @@ export const getLatestBotStatus = async () => {
     const db = await getDb()
 
     const status = await db.query.botStatuses.findFirst({
-        orderBy: [desc(botStatuses.createdAt)],
+        orderBy: desc(botStatuses.createdAt),
         with: {
             setByUser: true,
         },

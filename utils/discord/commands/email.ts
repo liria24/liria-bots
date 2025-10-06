@@ -1,11 +1,8 @@
 import {
-    ActionRowBuilder,
     type ChatInputCommandInteraction,
     EmbedBuilder,
-    ModalBuilder,
+    MessageFlags,
     SlashCommandBuilder,
-    TextInputBuilder,
-    TextInputStyle,
 } from 'discord.js'
 
 export const emailCommand = {
@@ -18,7 +15,36 @@ export const emailCommand = {
                 .setDescription('登録されているメールアカウントのリストを表示します')
         )
         .addSubcommand((subcommand) =>
-            subcommand.setName('add').setDescription('新しいメールアカウントを追加します')
+            subcommand
+                .setName('add')
+                .setDescription('新しいメールアカウントを追加します')
+                .addStringOption((option) =>
+                    option
+                        .setName('name')
+                        .setDescription('アカウント名 (例: 会社メール)')
+                        .setRequired(true)
+                        .setMaxLength(100)
+                )
+                .addStringOption((option) =>
+                    option.setName('email').setDescription('メールアドレス').setRequired(true)
+                )
+                .addStringOption((option) =>
+                    option
+                        .setName('host')
+                        .setDescription(
+                            'IMAPホスト (例: imap.example.com または imap.example.com:993)'
+                        )
+                        .setRequired(true)
+                )
+                .addStringOption((option) =>
+                    option.setName('password').setDescription('IMAPパスワード').setRequired(true)
+                )
+                .addStringOption((option) =>
+                    option
+                        .setName('user')
+                        .setDescription('IMAPユーザー名 (省略時はメールアドレスと同じ)')
+                        .setRequired(false)
+                )
         )
         .addSubcommand((subcommand) =>
             subcommand
@@ -40,13 +66,10 @@ export const emailCommand = {
             subcommand.setName('check').setDescription('すぐに新着メールをチェックします')
         ) as SlashCommandBuilder,
     async execute(interaction: ChatInputCommandInteraction) {
-        // addサブコマンドはモーダル表示のため、deferReplyしない
         const subcommand = interaction.options.getSubcommand()
-        const needsDefer = subcommand !== 'add'
 
-        if (needsDefer) {
-            await interaction.deferReply({ ephemeral: true })
-        }
+        // 権限チェックのために一旦deferReplyを呼ぶ
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral })
 
         // 権限チェック - admin権限がない場合はプロンプトを表示
         const lacksPermission = await showPermissionPromptIfNeeded(interaction, 'admin')
@@ -54,6 +77,7 @@ export const emailCommand = {
             return
         }
 
+        // addサブコマンドの場合は、権限チェック後にモーダルを表示
         if (subcommand === 'list') {
             await handleListEmails(interaction)
         } else if (subcommand === 'add') {
@@ -105,54 +129,47 @@ async function handleListEmails(interaction: ChatInputCommandInteraction) {
 }
 
 async function handleAddEmail(interaction: ChatInputCommandInteraction) {
-    const modal = new ModalBuilder()
-        .setCustomId('email:add-modal')
-        .setTitle('メールアカウントを追加')
+    const name = interaction.options.getString('name', true)
+    const email = interaction.options.getString('email', true)
+    const hostInput = interaction.options.getString('host', true)
+    const password = interaction.options.getString('password', true)
+    const userInput = interaction.options.getString('user')
 
-    const nameInput = new TextInputBuilder()
-        .setCustomId('name')
-        .setLabel('アカウント名')
-        .setStyle(TextInputStyle.Short)
-        .setPlaceholder('例: 会社メール')
-        .setRequired(true)
-        .setMaxLength(100)
+    // ホストとポートをパース（host:port形式に対応）
+    let imapHost = hostInput
+    let imapPort: number | undefined
 
-    const emailInput = new TextInputBuilder()
-        .setCustomId('email')
-        .setLabel('メールアドレス')
-        .setStyle(TextInputStyle.Short)
-        .setPlaceholder('example@example.com')
-        .setRequired(true)
+    if (hostInput.includes(':')) {
+        const [host, port] = hostInput.split(':')
+        imapHost = host
+        const parsedPort = Number.parseInt(port, 10)
+        if (!Number.isNaN(parsedPort) && parsedPort > 0 && parsedPort <= 65535) {
+            imapPort = parsedPort
+        }
+    }
 
-    const hostInput = new TextInputBuilder()
-        .setCustomId('host')
-        .setLabel('IMAPホスト')
-        .setStyle(TextInputStyle.Short)
-        .setPlaceholder('imap.example.com または imap.example.com:993')
-        .setRequired(true)
+    // ユーザー名が未入力の場合はメールアドレスを使用
+    const imapUser = userInput?.trim() || email
 
-    const userInput = new TextInputBuilder()
-        .setCustomId('user')
-        .setLabel('IMAPユーザー名（省略可）')
-        .setStyle(TextInputStyle.Short)
-        .setPlaceholder('未入力の場合はメールアドレスと同じ')
-        .setRequired(false)
+    try {
+        const account = await createEmailAccount({
+            name,
+            email,
+            imapHost,
+            imapPort,
+            imapUser,
+            imapPassword: password,
+        })
 
-    const passwordInput = new TextInputBuilder()
-        .setCustomId('password')
-        .setLabel('IMAPパスワード')
-        .setStyle(TextInputStyle.Short)
-        .setRequired(true)
-
-    modal.addComponents(
-        new ActionRowBuilder<TextInputBuilder>().addComponents(nameInput),
-        new ActionRowBuilder<TextInputBuilder>().addComponents(emailInput),
-        new ActionRowBuilder<TextInputBuilder>().addComponents(hostInput),
-        new ActionRowBuilder<TextInputBuilder>().addComponents(userInput),
-        new ActionRowBuilder<TextInputBuilder>().addComponents(passwordInput)
-    )
-
-    await interaction.showModal(modal)
+        await interaction.editReply(
+            `✅ メールアカウント「${account.name}」(${account.email})を追加しました。`
+        )
+    } catch (error) {
+        console.error('Failed to create email account', error)
+        await interaction.editReply(
+            'メールアカウントの追加に失敗しました。入力内容を確認してください。'
+        )
+    }
 }
 
 async function handleToggleEmail(interaction: ChatInputCommandInteraction) {
