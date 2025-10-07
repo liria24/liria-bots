@@ -1,0 +1,42 @@
+import { createConsola } from 'consola'
+
+const logger = createConsola({ defaults: { tag: 'memory' } })
+
+export default defineNitroPlugin((nitroApp) => {
+    const enabled = process.env.ENABLE_MEMORY_MONITOR === 'true'
+
+    if (!enabled) {
+        logger.info('Memory monitor is disabled')
+        return
+    }
+
+    logger.success('Memory monitor is enabled')
+
+    const formatBytes = (bytes: number): string => {
+        const mb = bytes / 1024 / 1024
+        return `${mb.toFixed(2)} MB`
+    }
+
+    const logMemoryUsage = () => {
+        const usage = process.memoryUsage()
+        logger.info('Memory Usage:', {
+            rss: formatBytes(usage.rss),
+            heapTotal: formatBytes(usage.heapTotal),
+            heapUsed: formatBytes(usage.heapUsed),
+            external: formatBytes(usage.external),
+            arrayBuffers: formatBytes(usage.arrayBuffers),
+        })
+    }
+
+    // Log immediately on startup
+    logMemoryUsage()
+
+    // Log every 5 seconds
+    const intervalId = setInterval(logMemoryUsage, 5000)
+
+    // Cleanup on shutdown
+    nitroApp.hooks.hook('close', () => {
+        logger.info('Stopping memory monitor')
+        clearInterval(intervalId)
+    })
+})
