@@ -14,6 +14,10 @@ export default defineNitroConfig({
             guildId: import.meta.env.DISCORD_GUILD_ID || '',
             installLink: import.meta.env.DISCORD_INSTALL_LINK || '',
         },
+        email: {
+            monitor: import.meta.env.EMAIL_MONITOR === 'true',
+        },
+        memoryMonitor: import.meta.env.MEMORY_MONITOR === 'true',
         public: {
             appName: 'Discord Bot',
         },

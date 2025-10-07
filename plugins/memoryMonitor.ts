@@ -3,9 +3,9 @@ import { createConsola } from 'consola'
 const logger = createConsola({ defaults: { tag: 'memory' } })
 
 export default defineNitroPlugin((nitroApp) => {
-    const enabled = process.env.ENABLE_MEMORY_MONITOR === 'true'
+    const { memoryMonitor } = useRuntimeConfig()
 
-    if (!enabled) {
+    if (!memoryMonitor) {
         logger.info('Memory monitor is disabled')
         return
     }
