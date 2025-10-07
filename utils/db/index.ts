@@ -11,6 +11,7 @@ const config = useRuntimeConfig()
 type Schema = typeof schema
 
 let db: PgliteDatabase<Schema> | null = null
+let pgliteInstance: PGlite | null = null
 
 export const getDb = async (): Promise<PgliteDatabase<Schema>> => {
     if (db) return db
@@ -19,11 +20,17 @@ export const getDb = async (): Promise<PgliteDatabase<Schema>> => {
 
     logger.info('Initializing PGlite database...')
 
-    db = drizzle(new PGlite(config.pglite.dataDir), { schema })
+    pgliteInstance = new PGlite(config.pglite.dataDir, {
+        relaxedDurability: true,
+    })
+
+    db = drizzle(pgliteInstance, { schema })
 
     logger.success(`PGlite database initialized at ${config.pglite.dataDir}`)
 
     return db
 }
+
+export const getPGliteInstance = (): PGlite | null => pgliteInstance
 
 export { schema }
