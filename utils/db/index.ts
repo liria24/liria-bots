@@ -1,7 +1,10 @@
-import { PGlite } from '@electric-sql/pglite'
+import { mkdir } from 'node:fs/promises'
+import { dirname } from 'node:path'
+import { createClient } from '@libsql/client'
 import { createConsola } from 'consola'
-import type { PgliteDatabase } from 'drizzle-orm/pglite'
-import { drizzle } from 'drizzle-orm/pglite'
+import type { LibSQLDatabase } from 'drizzle-orm/libsql'
+import { drizzle } from 'drizzle-orm/libsql'
+import { relations } from './relations'
 import * as schema from './schema'
 
 const logger = createConsola({ defaults: { tag: 'db' } })
@@ -9,28 +12,39 @@ const logger = createConsola({ defaults: { tag: 'db' } })
 const config = useRuntimeConfig()
 
 type Schema = typeof schema
+type Relations = typeof relations
+type Client = ReturnType<typeof createClient>
 
-let db: PgliteDatabase<Schema> | null = null
-let pgliteInstance: PGlite | null = null
+let db: LibSQLDatabase<Schema, Relations> | null = null
+let sqliteClient: Client | null = null
 
-export const getDb = async (): Promise<PgliteDatabase<Schema>> => {
+export const getDb = async () => {
     if (db) return db
 
-    if (config.pglite.dataDir === 'memory://') logger.info('Using in-memory PGlite database')
+    const dbPath = config.sqlite.dbPath
 
-    logger.info('Initializing PGlite database...')
+    if (dbPath === ':memory:') {
+        logger.info('Using in-memory SQLite database')
+        sqliteClient = createClient({ url: ':memory:' })
+    } else {
+        logger.info(`Initializing SQLite database at ${dbPath}`)
 
-    pgliteInstance = new PGlite(config.pglite.dataDir, {
-        relaxedDurability: true,
-    })
+        // Create directory if it doesn't exist
+        const dir = dirname(dbPath)
+        await mkdir(dir, { recursive: true })
 
-    db = drizzle(pgliteInstance, { schema })
+        // libsql requires file: prefix for local files
+        const url = dbPath.startsWith('file:') ? dbPath : `file:${dbPath}`
+        sqliteClient = createClient({ url })
+    }
 
-    logger.success(`PGlite database initialized at ${config.pglite.dataDir}`)
+    db = drizzle(sqliteClient, { schema, relations })
+
+    logger.success('SQLite database initialized')
 
     return db
 }
 
-export const getPGliteInstance = (): PGlite | null => pgliteInstance
+export const getSQLiteClient = (): Client | null => sqliteClient
 
 export { schema }

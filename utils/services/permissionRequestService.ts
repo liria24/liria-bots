@@ -1,11 +1,11 @@
 import { randomUUID } from 'node:crypto'
-import { and, eq } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 
 export const getPermissionRequestById = async (id: string) => {
     const db = await getDb()
 
     return db.query.permissionRequests.findFirst({
-        where: eq(permissionRequests.id, id),
+        where: { id },
         with: {
             requester: true,
             resolver: true,
@@ -35,10 +35,10 @@ export const findPendingRequestByRequester = async (requesterId: string) => {
     const db = await getDb()
 
     return db.query.permissionRequests.findFirst({
-        where: and(
-            eq(permissionRequests.requesterId, requesterId),
-            eq(permissionRequests.status, 'pending')
-        ),
+        where: {
+            requesterId,
+            status: 'pending',
+        },
     })
 }
 

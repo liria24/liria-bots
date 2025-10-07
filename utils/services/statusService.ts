@@ -1,4 +1,3 @@
-import { desc } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
 
 export interface BotStatusInput {
@@ -29,7 +28,7 @@ export const getLatestBotStatus = async () => {
     const db = await getDb()
 
     const status = await db.query.botStatuses.findFirst({
-        orderBy: desc(botStatuses.createdAt),
+        orderBy: { createdAt: 'desc' },
         with: {
             setByUser: true,
         },
@@ -42,7 +41,7 @@ export const getBotStatusHistory = async (limit = 10) => {
     const db = await getDb()
 
     const statuses = await db.query.botStatuses.findMany({
-        orderBy: [desc(botStatuses.createdAt)],
+        orderBy: { createdAt: 'desc' },
         limit,
         with: {
             setByUser: true,

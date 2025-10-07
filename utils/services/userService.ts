@@ -21,7 +21,7 @@ export const ensureUser = async (id: string, username?: string | null) => {
 
 export const getUserById = async (id: string) => {
     const db = await getDb()
-    return db.query.users.findFirst({ where: eq(users.id, id) })
+    return db.query.users.findFirst({ where: { id } })
 }
 
 export const getUserPermissionLevel = async (id: string): Promise<PermissionLevel | null> => {
@@ -46,7 +46,7 @@ export const listUsersByPermission = async (permission: PermissionLevel) => {
     const db = await getDb()
 
     return db.query.users.findMany({
-        where: eq(users.permissionLevel, permission),
+        where: { permissionLevel: permission },
     })
 }
 

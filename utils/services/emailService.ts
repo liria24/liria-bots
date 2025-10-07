@@ -37,21 +37,21 @@ export const createEmailAccount = async (input: CreateEmailAccountInput) => {
 export const listEmailAccounts = async () => {
     const db = await getDb()
     return db.query.emailAccounts.findMany({
-        orderBy: (accounts, { desc }) => desc(accounts.createdAt),
+        orderBy: { createdAt: 'desc' },
     })
 }
 
 export const getEmailAccountById = async (id: string) => {
     const db = await getDb()
     return db.query.emailAccounts.findFirst({
-        where: eq(emailAccounts.id, id),
+        where: { id },
     })
 }
 
 export const getEmailAccountByAddress = async (email: string) => {
     const db = await getDb()
     return db.query.emailAccounts.findFirst({
-        where: eq(emailAccounts.email, email),
+        where: { email },
     })
 }
 
@@ -86,7 +86,7 @@ export const deleteEmailAccount = async (id: string) => {
 export const getCheckInterval = async (): Promise<number> => {
     const db = await getDb()
     const settings = await db.query.emailCheckSettings.findFirst({
-        where: eq(emailCheckSettings.id, 'singleton'),
+        where: { id: 'singleton' },
     })
     return settings?.checkIntervalMinutes ?? 30
 }
@@ -114,7 +114,7 @@ export const setCheckInterval = async (minutes: number) => {
 export const listEnabledEmailAccounts = async () => {
     const db = await getDb()
     return db.query.emailAccounts.findMany({
-        where: eq(emailAccounts.enabled, true),
-        orderBy: (accounts, { asc }) => asc(accounts.lastCheckedAt),
+        where: { enabled: true },
+        orderBy: { lastCheckedAt: 'asc' },
     })
 }

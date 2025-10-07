@@ -1,36 +1,27 @@
-import { relations } from 'drizzle-orm'
-import {
-    boolean,
-    foreignKey,
-    index,
-    integer,
-    pgEnum,
-    pgTable,
-    text,
-    timestamp,
-} from 'drizzle-orm/pg-core'
+import { foreignKey, index, integer, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 
-export const permissionEnum = pgEnum('permission_level', ['granted', 'admin'])
-export const permissionRequestStatusEnum = pgEnum('permission_request_status', [
-    'pending',
-    'approved',
-    'rejected',
-])
+// SQLite doesn't have native enum types, so we use text with type constraints
+export const permissionLevelValues = ['granted', 'admin'] as const
+export const permissionRequestStatusValues = ['pending', 'approved', 'rejected'] as const
 
-export const users = pgTable(
+export const users = sqliteTable(
     'users',
     {
         id: text('id').primaryKey(),
         username: text('username'),
-        permissionLevel: permissionEnum('permission_level'),
-        adminDmOptOut: boolean('admin_dm_opt_out').default(false).notNull(),
-        createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
-        updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow().notNull(),
+        permissionLevel: text('permission_level').$type<(typeof permissionLevelValues)[number]>(),
+        adminDmOptOut: integer('admin_dm_opt_out', { mode: 'boolean' }).default(false).notNull(),
+        createdAt: integer('created_at', { mode: 'timestamp' })
+            .notNull()
+            .$defaultFn(() => new Date()),
+        updatedAt: integer('updated_at', { mode: 'timestamp' })
+            .notNull()
+            .$defaultFn(() => new Date()),
     },
     (table) => [index('users_permission_level_idx').on(table.permissionLevel)]
 )
 
-export const apiKeys = pgTable(
+export const apiKeys = sqliteTable(
     'api_keys',
     {
         id: text('id').primaryKey(),
@@ -38,9 +29,11 @@ export const apiKeys = pgTable(
         name: text('name').notNull(),
         keyHash: text('key_hash').notNull(),
         lastFour: text('last_four').notNull(),
-        createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
-        lastUsedAt: timestamp('last_used_at', { mode: 'date' }),
-        revokedAt: timestamp('revoked_at', { mode: 'date' }),
+        createdAt: integer('created_at', { mode: 'timestamp' })
+            .notNull()
+            .$defaultFn(() => new Date()),
+        lastUsedAt: integer('last_used_at', { mode: 'timestamp' }),
+        revokedAt: integer('revoked_at', { mode: 'timestamp' }),
     },
     (table) => [
         index('api_keys_user_active_idx').on(table.userId, table.revokedAt),
@@ -56,16 +49,23 @@ export const apiKeys = pgTable(
     ]
 )
 
-export const permissionRequests = pgTable(
+export const permissionRequests = sqliteTable(
     'permission_requests',
     {
         id: text('id').primaryKey(),
         requesterId: text('requester_id').notNull(),
-        status: permissionRequestStatusEnum('status').default('pending').notNull(),
-        createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
-        updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow().notNull(),
+        status: text('status')
+            .$type<(typeof permissionRequestStatusValues)[number]>()
+            .default('pending')
+            .notNull(),
+        createdAt: integer('created_at', { mode: 'timestamp' })
+            .notNull()
+            .$defaultFn(() => new Date()),
+        updatedAt: integer('updated_at', { mode: 'timestamp' })
+            .notNull()
+            .$defaultFn(() => new Date()),
         resolvedBy: text('resolved_by').references(() => users.id),
-        resolvedAt: timestamp('resolved_at', { mode: 'date' }),
+        resolvedAt: integer('resolved_at', { mode: 'timestamp' }),
         adminMessageId: text('admin_message_id'),
     },
     (table) => [
@@ -81,37 +81,16 @@ export const permissionRequests = pgTable(
     ]
 )
 
-export const usersRelations = relations(users, ({ many }) => ({
-    apiKeys: many(apiKeys),
-    requests: many(permissionRequests),
-}))
-
-export const apiKeysRelations = relations(apiKeys, ({ one }) => ({
-    user: one(users, {
-        fields: [apiKeys.userId],
-        references: [users.id],
-    }),
-}))
-
-export const permissionRequestsRelations = relations(permissionRequests, ({ one }) => ({
-    requester: one(users, {
-        fields: [permissionRequests.requesterId],
-        references: [users.id],
-    }),
-    resolver: one(users, {
-        fields: [permissionRequests.resolvedBy],
-        references: [users.id],
-    }),
-}))
-
-export const botStatuses = pgTable(
+export const botStatuses = sqliteTable(
     'bot_statuses',
     {
         id: text('id').primaryKey(),
         message: text('message').notNull(),
         activityType: integer('activity_type').notNull(),
         setBy: text('set_by').notNull(),
-        createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+        createdAt: integer('created_at', { mode: 'timestamp' })
+            .notNull()
+            .$defaultFn(() => new Date()),
     },
     (table) => [
         index('bot_statuses_created_at_idx').on(table.createdAt),
@@ -125,14 +104,7 @@ export const botStatuses = pgTable(
     ]
 )
 
-export const botStatusesRelations = relations(botStatuses, ({ one }) => ({
-    setByUser: one(users, {
-        fields: [botStatuses.setBy],
-        references: [users.id],
-    }),
-}))
-
-export const emailAccounts = pgTable(
+export const emailAccounts = sqliteTable(
     'email_accounts',
     {
         id: text('id').primaryKey(),
@@ -142,10 +114,14 @@ export const emailAccounts = pgTable(
         imapPort: integer('imap_port').notNull().default(993),
         imapUser: text('imap_user').notNull(),
         imapPassword: text('imap_password').notNull(),
-        enabled: boolean('enabled').notNull().default(true),
-        lastCheckedAt: timestamp('last_checked_at', { mode: 'date' }),
-        createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
-        updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow().notNull(),
+        enabled: integer('enabled', { mode: 'boolean' }).notNull().default(true),
+        lastCheckedAt: integer('last_checked_at', { mode: 'timestamp' }),
+        createdAt: integer('created_at', { mode: 'timestamp' })
+            .notNull()
+            .$defaultFn(() => new Date()),
+        updatedAt: integer('updated_at', { mode: 'timestamp' })
+            .notNull()
+            .$defaultFn(() => new Date()),
     },
     (table) => [
         index('email_accounts_enabled_idx').on(table.enabled),
@@ -153,11 +129,13 @@ export const emailAccounts = pgTable(
     ]
 )
 
-export const emailCheckSettings = pgTable('email_check_settings', {
+export const emailCheckSettings = sqliteTable('email_check_settings', {
     id: text('id').primaryKey().default('singleton'),
     checkIntervalMinutes: integer('check_interval_minutes').notNull().default(30),
-    updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow().notNull(),
+    updatedAt: integer('updated_at', { mode: 'timestamp' })
+        .notNull()
+        .$defaultFn(() => new Date()),
 })
 
-export type PermissionLevel = (typeof permissionEnum.enumValues)[number]
-export type PermissionRequestStatus = (typeof permissionRequestStatusEnum.enumValues)[number]
+export type PermissionLevel = (typeof permissionLevelValues)[number]
+export type PermissionRequestStatus = (typeof permissionRequestStatusValues)[number]

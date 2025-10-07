@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto'
-import { and, eq, isNull } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
 
 const KEY_PREFIX = 'liria_sk'
@@ -68,7 +68,10 @@ export const verifyApiKey = async (rawKey: string) => {
     if (!parsed) return null
 
     const keyRecord = await db.query.apiKeys.findFirst({
-        where: and(eq(apiKeys.id, parsed.id), isNull(apiKeys.revokedAt)),
+        where: {
+            id: parsed.id,
+            revokedAt: null,
+        },
         with: {
             user: true,
         },
@@ -94,7 +97,10 @@ export const revokeApiKey = async (id: string) => {
 export const listApiKeysForUser = async (userId: string) => {
     const db = await getDb()
     return db.query.apiKeys.findMany({
-        where: and(eq(apiKeys.userId, userId), isNull(apiKeys.revokedAt)),
-        orderBy: (keys, { desc }) => desc(keys.createdAt),
+        where: {
+            userId,
+            revokedAt: null,
+        },
+        orderBy: { createdAt: 'desc' },
     })
 }

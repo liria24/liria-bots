@@ -5,8 +5,8 @@ export default defineNitroConfig({
 
     runtimeConfig: {
         key: import.meta.env.KEY,
-        pglite: {
-            dataDir: import.meta.env.PGLITE_DATA_DIR || './postgres/data',
+        sqlite: {
+            dbPath: import.meta.env.SQLITE_DB_PATH || './data/sqlite.db',
         },
         discord: {
             token: import.meta.env.DISCORD_TOKEN || '',
