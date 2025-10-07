@@ -1,5 +1,4 @@
 import { PGlite } from '@electric-sql/pglite'
-import { NodeFS } from '@electric-sql/pglite/nodefs'
 import { createConsola } from 'consola'
 import type { PgliteDatabase } from 'drizzle-orm/pglite'
 import { drizzle } from 'drizzle-orm/pglite'
@@ -20,11 +19,7 @@ export const getDb = async (): Promise<PgliteDatabase<Schema>> => {
 
     logger.info('Initializing PGlite database...')
 
-    const pglite = await PGlite.create({
-        dataDir: config.pglite.dataDir,
-        fs: new NodeFS(config.pglite.dataDir),
-    })
-    db = drizzle(pglite, { schema })
+    db = drizzle(new PGlite(config.pglite.dataDir), { schema })
 
     logger.success(`PGlite database initialized at ${config.pglite.dataDir}`)
 
