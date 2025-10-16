@@ -70,7 +70,7 @@ export const verifyApiKey = async (rawKey: string) => {
     const keyRecord = await db.query.apiKeys.findFirst({
         where: {
             id: parsed.id,
-            revokedAt: null,
+            revokedAt: { isNull: true },
         },
         with: {
             user: true,
@@ -99,7 +99,7 @@ export const listApiKeysForUser = async (userId: string) => {
     return db.query.apiKeys.findMany({
         where: {
             userId,
-            revokedAt: null,
+            revokedAt: { isNull: true },
         },
         orderBy: { createdAt: 'desc' },
     })
