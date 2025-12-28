@@ -20,7 +20,6 @@ const body = z.object({
     activityType: z
         .enum(['Playing', 'Streaming', 'Listening', 'Watching', 'Custom', 'Competing'])
         .default('Playing'),
-    userId: z.string().min(1),
 })
 
 export default defineHandler(async (event) => {
@@ -30,13 +29,12 @@ export default defineHandler(async (event) => {
     if (authorization !== `Bearer ${config.key}`)
         throw new HTTPError({ statusCode: 401, statusMessage: 'Unauthorized' })
 
-    const { message, activityType: activityTypeStr, userId } = await validateBody(event, body)
+    const { message, activityType: activityTypeStr } = await validateBody(event, body)
     const activityType = activityTypeMap[activityTypeStr]
 
     const status = await saveBotStatus({
         message,
         activityType,
-        setBy: userId,
     })
 
     const controller = getDiscordBotController()

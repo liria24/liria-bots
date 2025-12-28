@@ -5,7 +5,6 @@ import { botStatuses } from '../db/schema'
 export interface BotStatusInput {
     message: string
     activityType: number
-    setBy: string
 }
 
 export const saveBotStatus = async (input: BotStatusInput) => {
@@ -18,7 +17,6 @@ export const saveBotStatus = async (input: BotStatusInput) => {
             id: nanoid(),
             message: input.message,
             activityType: input.activityType,
-            setBy: input.setBy,
             createdAt: now,
         })
         .returning()

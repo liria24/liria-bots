@@ -87,7 +87,7 @@ export const botStatuses = sqliteTable(
         id: text().primaryKey(),
         message: text().notNull(),
         activityType: integer('activity_type').notNull(),
-        setBy: text('set_by').notNull(),
+        setBy: text('set_by'),
         createdAt: integer('created_at', { mode: 'timestamp' })
             .notNull()
             .$defaultFn(() => new Date()),
