@@ -1,10 +1,10 @@
 import type { APIEmbed, MessageCreateOptions } from 'discord.js'
 import { defineHandler, HTTPError } from 'nitro/h3'
 import { z } from 'zod'
-import { getDiscordBotController } from '../utils/discord/bot'
-import { markApiKeyUsed, verifyApiKey } from '../utils/services/apiKeyService'
-import { listUsersByPermission } from '../utils/services/userService'
-import { validateBody } from '../utils/validateRequest'
+import { getDiscordBotController } from '../../utils/discord/bot'
+import { markApiKeyUsed, verifyApiKey } from '../../utils/services/apiKeyService'
+import { listUsersByPermission } from '../../utils/services/userService'
+import { validateBody } from '../../utils/validateRequest'
 
 const embedFieldSchema = z.object({
     name: z.string(),
