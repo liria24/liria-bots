@@ -4,6 +4,8 @@ import {
     MessageFlags,
     SlashCommandBuilder,
 } from 'discord.js'
+import { ensureUser, getUserPermissionLevel } from '../../services/userService'
+import type { DiscordCommand } from '../../types'
 
 export const helpCommand = {
     data: new SlashCommandBuilder()

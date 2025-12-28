@@ -3,6 +3,13 @@ import type { ImapMessage } from 'imap'
 import Imap from 'imap'
 import type { ParsedMail } from 'mailparser'
 import { simpleParser } from 'mailparser'
+import { getDiscordBotController } from './discord/bot'
+import {
+    getCheckInterval,
+    listEnabledEmailAccounts,
+    updateEmailAccountLastChecked,
+} from './services/emailService'
+import { listUsersByPermission } from './services/userService'
 
 const logger = console
 

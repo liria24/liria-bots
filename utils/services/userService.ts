@@ -1,4 +1,6 @@
 import { eq } from 'drizzle-orm'
+import { getDb } from '../db'
+import { type PermissionLevel, users } from '../db/schema'
 
 export const ensureUser = async (id: string, username?: string | null) => {
     const db = await getDb()

@@ -1,10 +1,18 @@
+import {
+    getValidatedQuery,
+    getValidatedRouterParams,
+    type H3Event,
+    readValidatedBody,
+} from 'nitro/deps/h3'
 import type { z } from 'zod'
+import sanitizeObject from './sanitizeObject'
 
 export const validateBody = async <T extends z.ZodTypeAny>(
+    event: H3Event,
     schema: T,
     options?: { sanitize?: boolean }
 ): Promise<z.infer<T>> => {
-    const result = await readValidatedBody(useEvent(), (body) => {
+    const result = await readValidatedBody(event, (body) => {
         if (options?.sanitize) body = sanitizeObject(body)
 
         return schema.safeParse(body)
@@ -19,10 +27,11 @@ export const validateBody = async <T extends z.ZodTypeAny>(
 }
 
 export const validateFormData = async <T extends z.ZodTypeAny>(
+    event: H3Event,
     schema: T,
     transformer?: (formData: FormData) => Record<string, unknown>
 ): Promise<z.infer<T>> => {
-    const formData = await readFormData(useEvent())
+    const formData = await event.req.formData()
 
     // デフォルトはFormDataをオブジェクトに変換
     const dataToValidate = transformer
@@ -36,16 +45,22 @@ export const validateFormData = async <T extends z.ZodTypeAny>(
     return result.data
 }
 
-export const validateParams = async <T extends z.ZodTypeAny>(schema: T): Promise<z.infer<T>> => {
-    const result = await getValidatedRouterParams(useEvent(), (body) => schema.safeParse(body))
+export const validateParams = async <T extends z.ZodTypeAny>(
+    event: H3Event,
+    schema: T
+): Promise<z.infer<T>> => {
+    const result = await getValidatedRouterParams(event, (body) => schema.safeParse(body))
 
     if (!result.success) throw result.error
 
     return result.data
 }
 
-export const validateQuery = async <T extends z.ZodTypeAny>(schema: T): Promise<z.infer<T>> => {
-    const result = await getValidatedQuery(useEvent(), (query) => schema.safeParse(query))
+export const validateQuery = async <T extends z.ZodTypeAny>(
+    event: H3Event,
+    schema: T
+): Promise<z.infer<T>> => {
+    const result = await getValidatedQuery(event, (query) => schema.safeParse(query))
 
     if (!result.success) throw result.error
 

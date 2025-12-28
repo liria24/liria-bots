@@ -1,5 +1,9 @@
+import { defineNitroConfig } from 'nitro/config'
+
 export default defineNitroConfig({
-    compatibilityDate: '2025-09-29',
+    compatibilityDate: 'latest',
+
+    serverDir: './',
 
     preset: 'node-server',
 
@@ -25,15 +29,6 @@ export default defineNitroConfig({
 
     routeRules: {
         '/': { redirect: import.meta.env.DISCORD_INSTALL_LINK },
-    },
-
-    imports: {
-        imports: [
-            {
-                name: 'z',
-                from: 'zod',
-            },
-        ],
     },
 
     experimental: {

@@ -4,6 +4,17 @@ import {
     MessageFlags,
     SlashCommandBuilder,
 } from 'discord.js'
+import { checkEmailsNow } from '../../emailMonitor'
+import {
+    createEmailAccount,
+    deleteEmailAccount,
+    getCheckInterval,
+    getEmailAccountByAddress,
+    listEmailAccounts,
+    updateEmailAccountEnabled,
+} from '../../services/emailService'
+import type { DiscordCommand } from '../../types'
+import { showPermissionPromptIfNeeded } from '../permissionPrompt'
 
 export const emailCommand = {
     data: new SlashCommandBuilder()
@@ -141,10 +152,12 @@ async function handleAddEmail(interaction: ChatInputCommandInteraction) {
 
     if (hostInput.includes(':')) {
         const [host, port] = hostInput.split(':')
-        imapHost = host
-        const parsedPort = Number.parseInt(port, 10)
-        if (!Number.isNaN(parsedPort) && parsedPort > 0 && parsedPort <= 65535) {
-            imapPort = parsedPort
+        imapHost = host ?? hostInput
+
+        if (port !== undefined) {
+            const parsedPort = Number.parseInt(port, 10)
+            if (!Number.isNaN(parsedPort) && parsedPort > 0 && parsedPort <= 65535)
+                imapPort = parsedPort
         }
     }
 
@@ -160,6 +173,8 @@ async function handleAddEmail(interaction: ChatInputCommandInteraction) {
             imapUser,
             imapPassword: password,
         })
+
+        if (!account) throw new Error('Failed to create email account')
 
         await interaction.editReply(
             `✅ メールアカウント「${account.name}」(${account.email})を追加しました。`

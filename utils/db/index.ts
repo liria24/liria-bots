@@ -4,6 +4,7 @@ import { createClient } from '@libsql/client'
 import { createConsola } from 'consola'
 import type { LibSQLDatabase } from 'drizzle-orm/libsql'
 import { drizzle } from 'drizzle-orm/libsql'
+import { useRuntimeConfig } from 'nitro/runtime-config'
 import { relations } from './relations'
 import * as schema from './schema'
 
@@ -38,7 +39,7 @@ export const getDb = async () => {
         sqliteClient = createClient({ url })
     }
 
-    db = drizzle(sqliteClient, { schema, relations })
+    db = drizzle({ client: sqliteClient, schema, relations })
 
     logger.success('SQLite database initialized')
 

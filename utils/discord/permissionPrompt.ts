@@ -5,6 +5,8 @@ import {
     type ChatInputCommandInteraction,
     EmbedBuilder,
 } from 'discord.js'
+import { findPendingRequestByRequester } from '../services/permissionRequestService'
+import { ensureUser, getUserPermissionLevel } from '../services/userService'
 
 /**
  * 権限が必要な操作を実行しようとしたときに、権限リクエストのプロンプトを表示する

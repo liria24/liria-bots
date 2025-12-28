@@ -12,6 +12,10 @@ import {
     Routes,
     type Snowflake,
 } from 'discord.js'
+import { getLatestBotStatus } from '../services/statusService'
+import type { DiscordCommand } from '../types'
+import { handlePermissionPromptButton } from './handlers/permissionPromptHandler'
+import { handlePermissionRequestButton } from './handlers/permissionRequestHandler'
 
 const logger = createConsola({ defaults: { tag: 'discord' } })
 

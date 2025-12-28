@@ -1,8 +1,10 @@
 import { createConsola } from 'consola'
+import { definePlugin } from 'nitro'
+import { useRuntimeConfig } from 'nitro/runtime-config'
 
 const logger = createConsola({ defaults: { tag: 'memory' } })
 
-export default defineNitroPlugin((nitroApp) => {
+export default definePlugin((nitroApp) => {
     const { memoryMonitor } = useRuntimeConfig()
 
     if (!memoryMonitor) {

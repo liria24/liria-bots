@@ -1,8 +1,18 @@
 import { createConsola } from 'consola'
+import { definePlugin } from 'nitro'
+import { useRuntimeConfig } from 'nitro/runtime-config'
+import {
+    clearDiscordBotController,
+    getDiscordBotController,
+    setDiscordBotController,
+    startDiscordBot,
+} from '../utils/discord/bot'
+import { discordCommands } from '../utils/discord/commands'
+import { startEmailMonitoring, stopEmailMonitoring } from '../utils/emailMonitor'
 
 const logger = createConsola({ defaults: { tag: 'discord' } })
 
-export default defineNitroPlugin(async (nitroApp) => {
+export default definePlugin(async (nitroApp) => {
     const existingController = getDiscordBotController()
 
     if (existingController?.isReady()) {

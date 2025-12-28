@@ -1,4 +1,10 @@
 import type { APIEmbed, MessageCreateOptions } from 'discord.js'
+import { defineHandler, HTTPError } from 'nitro/h3'
+import { z } from 'zod'
+import { getDiscordBotController } from '../utils/discord/bot'
+import { markApiKeyUsed, verifyApiKey } from '../utils/services/apiKeyService'
+import { listUsersByPermission } from '../utils/services/userService'
+import { validateBody } from '../utils/validateRequest'
 
 const embedFieldSchema = z.object({
     name: z.string(),
@@ -56,13 +62,13 @@ const adminMessageBodySchema = z
         }
     )
 
-export default defineEventHandler(async (event) => {
-    const headers = getRequestHeaders(event)
+export default defineHandler(async (event) => {
+    const headers = Object.fromEntries(event.req.headers.entries())
     const authHeader = headers.authorization?.trim()
 
     if (!authHeader?.startsWith('Bearer ')) {
         console.warn('Missing or invalid Authorization header')
-        throw createError({
+        throw new HTTPError({
             statusCode: 401,
             statusMessage: 'Unauthorized',
             message: 'Invalid API key',
@@ -74,7 +80,7 @@ export default defineEventHandler(async (event) => {
 
     if (!apiKeyRecord) {
         console.warn('Unauthorized request with unknown API key prefix')
-        throw createError({
+        throw new HTTPError({
             statusCode: 401,
             statusMessage: 'Unauthorized',
             message: 'Invalid API key',
@@ -87,14 +93,14 @@ export default defineEventHandler(async (event) => {
         console.warn('Authenticated user lacks permission to post messages', {
             userId: apiKeyRecord.userId,
         })
-        throw createError({
+        throw new HTTPError({
             statusCode: 403,
             statusMessage: 'Forbidden',
             message: 'Permission denied',
         })
     }
 
-    const { content, embeds } = await validateBody(adminMessageBodySchema, {
+    const { content, embeds } = await validateBody(event, adminMessageBodySchema, {
         sanitize: true,
     })
     const trimmedContent = content?.trim()
@@ -103,7 +109,7 @@ export default defineEventHandler(async (event) => {
 
     if (!controller) {
         console.error('Discord bot controller is not available')
-        throw createError({
+        throw new HTTPError({
             statusCode: 503,
             statusMessage: 'Service Unavailable',
             message: 'Discord bot is not running',
@@ -112,7 +118,7 @@ export default defineEventHandler(async (event) => {
 
     if (!controller.isReady()) {
         console.warn('Discord bot client is not ready to send messages')
-        throw createError({
+        throw new HTTPError({
             statusCode: 503,
             statusMessage: 'Service Unavailable',
             message: 'Discord bot is not ready yet',
@@ -160,7 +166,7 @@ export default defineEventHandler(async (event) => {
         await markApiKeyUsed(apiKeyRecord.id)
 
         if (results.sent === 0) {
-            throw createError({
+            throw new HTTPError({
                 statusCode: 502,
                 statusMessage: 'Bad Gateway',
                 message: 'Failed to deliver message to any admin users',
@@ -176,7 +182,7 @@ export default defineEventHandler(async (event) => {
         }
     } catch (error) {
         console.error('Failed to deliver admin message to Discord', error)
-        throw createError({
+        throw new HTTPError({
             statusCode: 502,
             statusMessage: 'Bad Gateway',
             message: 'Failed to deliver message to Discord',

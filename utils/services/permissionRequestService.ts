@@ -1,5 +1,7 @@
 import { randomUUID } from 'node:crypto'
 import { eq } from 'drizzle-orm'
+import { getDb } from '../db'
+import { type PermissionRequestStatus, permissionRequests } from '../db/schema'
 
 export const getPermissionRequestById = async (id: string) => {
     const db = await getDb()

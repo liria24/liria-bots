@@ -6,6 +6,11 @@ import {
     EmbedBuilder,
     MessageFlags,
 } from 'discord.js'
+import {
+    getPermissionRequestById,
+    updatePermissionRequestStatus,
+} from '../../services/permissionRequestService'
+import { ensureUser, getUserPermissionLevel, setUserPermission } from '../../services/userService'
 
 const COMPONENT_PREFIX = 'perm-request'
 

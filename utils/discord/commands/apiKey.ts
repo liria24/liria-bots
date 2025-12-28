@@ -4,6 +4,9 @@ import {
     MessageFlags,
     SlashCommandBuilder,
 } from 'discord.js'
+import { createApiKey, listApiKeysForUser, revokeApiKey } from '../../services/apiKeyService'
+import type { DiscordCommand } from '../../types'
+import { showPermissionPromptIfNeeded } from '../permissionPrompt'
 
 export const apiKeyCommand = {
     data: new SlashCommandBuilder()

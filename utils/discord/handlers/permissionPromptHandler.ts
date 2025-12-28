@@ -5,6 +5,12 @@ import {
     ButtonStyle,
     EmbedBuilder,
 } from 'discord.js'
+import {
+    createPermissionRequest,
+    findPendingRequestByRequester,
+    saveAdminMessageId,
+} from '../../services/permissionRequestService'
+import { ensureUser, listUsersByPermission } from '../../services/userService'
 
 const buildButtonCustomId = (action: 'approve' | 'reject', id: string) =>
     `perm-request:${action}:${id}`
@@ -55,6 +61,15 @@ export async function handlePermissionPromptButton(
 
         // 権限リクエストを作成
         const request = await createPermissionRequest(interaction.user.id)
+
+        if (!request) {
+            await interaction.update({
+                content: '申請の作成に失敗しました。管理者にお問い合わせください。',
+                embeds: [],
+                components: [],
+            })
+            return true
+        }
 
         const embed = new EmbedBuilder()
             .setTitle('API権限リクエスト')

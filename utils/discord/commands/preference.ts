@@ -4,6 +4,15 @@ import {
     MessageFlags,
     SlashCommandBuilder,
 } from 'discord.js'
+import { getCheckInterval, setCheckInterval } from '../../services/emailService'
+import {
+    ensureUser,
+    getAdminDmOptOut,
+    getUserPermissionLevel,
+    setAdminDmOptOut,
+} from '../../services/userService'
+import type { DiscordCommand } from '../../types'
+import { showPermissionPromptIfNeeded } from '../permissionPrompt'
 
 export const preferenceCommand = {
     data: new SlashCommandBuilder()
@@ -37,7 +46,7 @@ export const preferenceCommand = {
         await interaction.deferReply({ flags: MessageFlags.Ephemeral })
 
         await ensureUser(interaction.user.id, interaction.user.tag)
-        const permission = await getUserPermissionLevel(interaction.user.id)
+        const permission = (await getUserPermissionLevel(interaction.user.id)) ?? 'none'
         const isAdmin = permission === 'admin'
 
         const subcommand = interaction.options.getSubcommand()

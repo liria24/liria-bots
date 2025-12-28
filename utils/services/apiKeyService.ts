@@ -1,6 +1,8 @@
 import { createHash } from 'node:crypto'
 import { eq } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
+import { getDb } from '../db'
+import { apiKeys } from '../db/schema'
 
 const KEY_PREFIX = 'liria_sk'
 const KEY_SEPARATOR = '.'

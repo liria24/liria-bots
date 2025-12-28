@@ -7,8 +7,8 @@ export const permissionRequestStatusValues = ['pending', 'approved', 'rejected']
 export const users = sqliteTable(
     'users',
     {
-        id: text('id').primaryKey(),
-        username: text('username'),
+        id: text().primaryKey(),
+        username: text(),
         permissionLevel: text('permission_level').$type<(typeof permissionLevelValues)[number]>(),
         adminDmOptOut: integer('admin_dm_opt_out', { mode: 'boolean' }).default(false).notNull(),
         createdAt: integer('created_at', { mode: 'timestamp' })
@@ -24,9 +24,9 @@ export const users = sqliteTable(
 export const apiKeys = sqliteTable(
     'api_keys',
     {
-        id: text('id').primaryKey(),
+        id: text().primaryKey(),
         userId: text('user_id').notNull(),
-        name: text('name').notNull(),
+        name: text().notNull(),
         keyHash: text('key_hash').notNull(),
         lastFour: text('last_four').notNull(),
         createdAt: integer('created_at', { mode: 'timestamp' })
@@ -52,9 +52,9 @@ export const apiKeys = sqliteTable(
 export const permissionRequests = sqliteTable(
     'permission_requests',
     {
-        id: text('id').primaryKey(),
+        id: text().primaryKey(),
         requesterId: text('requester_id').notNull(),
-        status: text('status')
+        status: text()
             .$type<(typeof permissionRequestStatusValues)[number]>()
             .default('pending')
             .notNull(),
@@ -84,8 +84,8 @@ export const permissionRequests = sqliteTable(
 export const botStatuses = sqliteTable(
     'bot_statuses',
     {
-        id: text('id').primaryKey(),
-        message: text('message').notNull(),
+        id: text().primaryKey(),
+        message: text().notNull(),
         activityType: integer('activity_type').notNull(),
         setBy: text('set_by').notNull(),
         createdAt: integer('created_at', { mode: 'timestamp' })
@@ -107,9 +107,9 @@ export const botStatuses = sqliteTable(
 export const emailAccounts = sqliteTable(
     'email_accounts',
     {
-        id: text('id').primaryKey(),
-        name: text('name').notNull(),
-        email: text('email').notNull(),
+        id: text().primaryKey(),
+        name: text().notNull(),
+        email: text().notNull(),
         imapHost: text('imap_host').notNull(),
         imapPort: integer('imap_port').notNull().default(993),
         imapUser: text('imap_user').notNull(),
@@ -130,7 +130,7 @@ export const emailAccounts = sqliteTable(
 )
 
 export const emailCheckSettings = sqliteTable('email_check_settings', {
-    id: text('id').primaryKey().default('singleton'),
+    id: text().primaryKey().default('singleton'),
     checkIntervalMinutes: integer('check_interval_minutes').notNull().default(30),
     updatedAt: integer('updated_at', { mode: 'timestamp' })
         .notNull()
