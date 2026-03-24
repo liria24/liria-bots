@@ -10,39 +10,37 @@
         "prestart": "drizzle-kit push",
         "start": "node ./.output/server/index.mjs",
         "test": "bun test",
-        "fmt": "oxfmt",
-        "fmt:check": "oxfmt --check",
-        "lint": "oxlint",
-        "lint:fix": "oxlint --fix"
+        "check": "vp check",
+        "check:fix": "vp check --fix"
     },
     "dependencies": {
-        "@libsql/client": "^0.17.0",
+        "@libsql/client": "^0.17.2",
         "async-retry": "1.3.3",
         "discord.js": "14.25.1",
-        "drizzle-orm": "1.0.0-beta.12-a5629fb",
+        "drizzle-orm": "1.0.0-beta.19",
         "imap": "0.8.19",
-        "mailparser": "3.9.1",
-        "nanoid": "^5.1.6",
-        "nitro": "3.0.1-alpha.2",
-        "sanitize-html": "2.17.0",
+        "mailparser": "3.9.5",
+        "nanoid": "^5.1.7",
+        "nitro": "3.0.260311-beta",
+        "sanitize-html": "2.17.2",
         "zod": "4.3.6"
     },
     "devDependencies": {
         "@types/async-retry": "1.4.9",
-        "@types/bun": "1.3.6",
+        "@types/bun": "1.3.11",
         "@types/imap": "0.8.43",
         "@types/mailparser": "3.4.6",
-        "@types/node": "25.0.10",
-        "@types/sanitize-html": "2.16.0",
+        "@types/node": "25.5.0",
+        "@types/sanitize-html": "2.16.1",
         "consola": "3.4.2",
-        "drizzle-kit": "1.0.0-beta.12-a5629fb",
-        "oxfmt": "^0.26.0",
-        "oxlint": "^1.41.0",
-        "typescript": "5.9.3",
-        "vite": "8.0.0-beta.10"
+        "drizzle-kit": "1.0.0-beta.19",
+        "taze": "^19.10.0",
+        "typescript": "6.0.2",
+        "vite": "8.0.2",
+        "vite-plus": "^0.1.13"
     },
     "engines": {
-        "node": ">=22.5.0"
+        "node": "24"
     },
-    "packageManager": "bun@1.3.6"
+    "packageManager": "bun@1.3.11"
 }
