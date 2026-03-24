@@ -1,70 +1,51 @@
-import type { z } from 'zod'
-
+import { getReasonPhrase, StatusCodes } from 'http-status-codes'
+import { useRequest } from 'nitro/context'
 import {
     getValidatedQuery,
     getValidatedRouterParams,
-    type H3Event,
+    HTTPError,
     readValidatedBody,
+    H3Event,
 } from 'nitro/h3'
+import type { z } from 'zod'
 
+import { logger } from './logger'
 import sanitizeObject from './sanitizeObject'
 
-export const validateBody = async <T extends z.ZodTypeAny>(
-    event: H3Event,
-    schema: T,
-    options?: { sanitize?: boolean }
-): Promise<z.infer<T>> => {
-    const result = await readValidatedBody(event, (body) => {
-        if (options?.sanitize) body = sanitizeObject(body)
-
-        return schema.safeParse(body)
-    })
-
+const throwIfFailed = <T>(
+    tag: string,
+    result: z.ZodSafeParseSuccess<T> | z.ZodSafeParseError<unknown>
+): T => {
     if (!result.success) {
-        console.error('Validation failed:', result.error)
-        throw result.error
+        if (import.meta.dev) logger(tag).error(result.error)
+        throw new HTTPError({
+            status: StatusCodes.BAD_REQUEST,
+            statusText: getReasonPhrase(StatusCodes.BAD_REQUEST),
+            message: 'Validation Error',
+        })
     }
-
     return result.data
 }
 
-export const validateFormData = async <T extends z.ZodTypeAny>(
-    event: H3Event,
-    schema: T,
-    transformer?: (formData: FormData) => Record<string, unknown>
-): Promise<z.infer<T>> => {
-    const formData = await event.req.formData()
+export const validateBody = async <T extends z.ZodTypeAny>(
+    s: T,
+    o?: { sanitize?: boolean }
+): Promise<z.infer<T>> =>
+    throwIfFailed(
+        'validateBody',
+        await readValidatedBody(new H3Event(useRequest()), (b) =>
+            s.safeParse(o?.sanitize ? sanitizeObject(b) : b)
+        )
+    )
 
-    // デフォルトはFormDataをオブジェクトに変換
-    const dataToValidate = transformer
-        ? transformer(formData)
-        : Object.fromEntries(formData.entries())
+export const validateParams = async <T extends z.ZodTypeAny>(s: T): Promise<z.infer<T>> =>
+    throwIfFailed(
+        'validateParams',
+        await getValidatedRouterParams(new H3Event(useRequest()), (p) => s.safeParse(p))
+    )
 
-    const result = schema.safeParse(dataToValidate)
-
-    if (!result.success) throw result.error
-
-    return result.data
-}
-
-export const validateParams = async <T extends z.ZodTypeAny>(
-    event: H3Event,
-    schema: T
-): Promise<z.infer<T>> => {
-    const result = await getValidatedRouterParams(event, (body) => schema.safeParse(body))
-
-    if (!result.success) throw result.error
-
-    return result.data
-}
-
-export const validateQuery = async <T extends z.ZodTypeAny>(
-    event: H3Event,
-    schema: T
-): Promise<z.infer<T>> => {
-    const result = await getValidatedQuery(event, (query) => schema.safeParse(query))
-
-    if (!result.success) throw result.error
-
-    return result.data
-}
+export const validateQuery = async <T extends z.ZodTypeAny>(s: T): Promise<z.infer<T>> =>
+    throwIfFailed(
+        'validateQuery',
+        await getValidatedQuery(new H3Event(useRequest()), (q) => s.safeParse(q))
+    )

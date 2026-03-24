@@ -1,18 +1,19 @@
-import { createConsola } from 'consola'
 import { definePlugin } from 'nitro'
 import { useRuntimeConfig } from 'nitro/runtime-config'
 
-const logger = createConsola({ defaults: { tag: 'memory' } })
+import { logger } from '../utils/logger'
+
+const log = logger('memory')
 
 export default definePlugin((nitroApp) => {
     const { memoryMonitor } = useRuntimeConfig()
 
     if (!memoryMonitor) {
-        logger.info('Memory monitor is disabled')
+        log.info('Memory monitor is disabled')
         return
     }
 
-    logger.success('Memory monitor is enabled')
+    log.success('Memory monitor is enabled')
 
     const formatBytes = (bytes: number): string => {
         const mb = bytes / 1024 / 1024
@@ -21,7 +22,7 @@ export default definePlugin((nitroApp) => {
 
     const logMemoryUsage = () => {
         const usage = process.memoryUsage()
-        logger.info('Memory Usage:', {
+        log.info('Memory Usage:', {
             rss: formatBytes(usage.rss),
             heapTotal: formatBytes(usage.heapTotal),
             heapUsed: formatBytes(usage.heapUsed),
@@ -38,7 +39,7 @@ export default definePlugin((nitroApp) => {
 
     // Cleanup on shutdown
     nitroApp.hooks.hook('close', () => {
-        logger.info('Stopping memory monitor')
+        log.info('Stopping memory monitor')
         clearInterval(intervalId)
     })
 })

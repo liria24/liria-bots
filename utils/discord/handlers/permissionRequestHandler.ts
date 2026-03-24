@@ -7,6 +7,7 @@ import {
     MessageFlags,
 } from 'discord.js'
 
+import { logger } from '../../logger'
 import {
     getPermissionRequestById,
     updatePermissionRequestStatus,
@@ -126,7 +127,7 @@ export const handlePermissionRequestButton = async (
             embeds: [updatedEmbed],
         })
     } catch (error) {
-        console.error('Failed to notify requester about decision', {
+        logger('permissionRequest').error('Failed to notify requester about decision', {
             requesterId: request.requesterId,
             error,
         })

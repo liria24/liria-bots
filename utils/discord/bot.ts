@@ -13,9 +13,8 @@ import {
     type Snowflake,
 } from 'discord.js'
 
-import type { DiscordCommand } from '../types'
-
 import { getLatestBotStatus } from '../services/statusService'
+import type { DiscordCommand } from '../types'
 import { handlePermissionPromptButton } from './handlers/permissionPromptHandler'
 import { handlePermissionRequestButton } from './handlers/permissionRequestHandler'
 

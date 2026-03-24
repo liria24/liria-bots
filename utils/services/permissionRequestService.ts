@@ -1,5 +1,5 @@
 import { eq } from 'drizzle-orm'
-import { randomUUID } from 'node:crypto'
+import { nanoid } from 'nanoid'
 
 import { getDb } from '../db'
 import { type PermissionRequestStatus, permissionRequests } from '../db/schema'
@@ -23,7 +23,7 @@ export const createPermissionRequest = async (requesterId: string) => {
     const [request] = await db
         .insert(permissionRequests)
         .values({
-            id: randomUUID(),
+            id: nanoid(),
             requesterId,
             status: 'pending',
             createdAt: now,

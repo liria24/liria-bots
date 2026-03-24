@@ -5,9 +5,8 @@ import {
     SlashCommandBuilder,
 } from 'discord.js'
 
-import type { DiscordCommand } from '../../types'
-
 import { ensureUser, getUserPermissionLevel } from '../../services/userService'
+import type { DiscordCommand } from '../../types'
 
 export const helpCommand = {
     data: new SlashCommandBuilder()

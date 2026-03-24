@@ -1,10 +1,12 @@
 import type { APIEmbed, MessageCreateOptions } from 'discord.js'
-
-import { defineHandler, HTTPError } from 'nitro/h3'
+import { getReasonPhrase, StatusCodes } from 'http-status-codes'
+import { HTTPError } from 'nitro/h3'
 import { z } from 'zod'
 
 import { getDiscordBotController } from '../../utils/discord/bot'
-import { markApiKeyUsed, verifyApiKey } from '../../utils/services/apiKeyService'
+import { adminHandler } from '../../utils/eventHandler'
+import { logger } from '../../utils/logger'
+import { markApiKeyUsed } from '../../utils/services/apiKeyService'
 import { listUsersByPermission } from '../../utils/services/userService'
 import { validateBody } from '../../utils/validateRequest'
 
@@ -64,65 +66,26 @@ const adminMessageBodySchema = z
         }
     )
 
-export default defineHandler(async (event) => {
-    const headers = Object.fromEntries(event.req.headers.entries())
-    const authHeader = headers.authorization?.trim()
-
-    if (!authHeader?.startsWith('Bearer ')) {
-        console.warn('Missing or invalid Authorization header')
-        throw new HTTPError({
-            statusCode: 401,
-            statusMessage: 'Unauthorized',
-            message: 'Invalid API key',
-        })
-    }
-
-    const rawApiKey = authHeader.slice('Bearer '.length).trim()
-    const apiKeyRecord = await verifyApiKey(rawApiKey)
-
-    if (!apiKeyRecord) {
-        console.warn('Unauthorized request with unknown API key prefix')
-        throw new HTTPError({
-            statusCode: 401,
-            statusMessage: 'Unauthorized',
-            message: 'Invalid API key',
-        })
-    }
-
-    const permissionLevel = apiKeyRecord.user?.permissionLevel
-
-    if (permissionLevel !== 'granted' && permissionLevel !== 'admin') {
-        console.warn('Authenticated user lacks permission to post messages', {
-            userId: apiKeyRecord.userId,
-        })
-        throw new HTTPError({
-            statusCode: 403,
-            statusMessage: 'Forbidden',
-            message: 'Permission denied',
-        })
-    }
-
-    const { content, embeds } = await validateBody(event, adminMessageBodySchema, {
-        sanitize: true,
-    })
+export default adminHandler(async ({ apiKeyRecord }) => {
+    const { content, embeds } = await validateBody(adminMessageBodySchema, { sanitize: true })
     const trimmedContent = content?.trim()
 
     const controller = getDiscordBotController()
 
     if (!controller) {
-        console.error('Discord bot controller is not available')
+        logger('adminMessage').error('Discord bot controller is not available')
         throw new HTTPError({
-            statusCode: 503,
-            statusMessage: 'Service Unavailable',
+            status: StatusCodes.SERVICE_UNAVAILABLE,
+            statusText: getReasonPhrase(StatusCodes.SERVICE_UNAVAILABLE),
             message: 'Discord bot is not running',
         })
     }
 
     if (!controller.isReady()) {
-        console.warn('Discord bot client is not ready to send messages')
+        logger('adminMessage').warn('Discord bot client is not ready to send messages')
         throw new HTTPError({
-            statusCode: 503,
-            statusMessage: 'Service Unavailable',
+            status: StatusCodes.SERVICE_UNAVAILABLE,
+            statusText: getReasonPhrase(StatusCodes.SERVICE_UNAVAILABLE),
             message: 'Discord bot is not ready yet',
         })
     }
@@ -135,7 +98,7 @@ export default defineHandler(async (event) => {
         const adminUsers = allAdminUsers.filter((user) => !user.adminDmOptOut)
 
         if (!adminUsers || adminUsers.length === 0) {
-            console.warn('No admin users found to send DM (or all opted out)')
+            logger('adminMessage').warn('No admin users found to send DM (or all opted out)')
             return {
                 status: 'skipped',
                 reason: 'No admin users available (all may have opted out)',
@@ -159,7 +122,7 @@ export default defineHandler(async (event) => {
                 await user.send(messageOptions)
                 results.sent++
             } catch (error) {
-                console.error(`Failed to send DM to admin user ${admin.id}:`, error)
+                logger('adminMessage').error(`Failed to send DM to admin user ${admin.id}:`, error)
                 results.failed++
                 results.errors.push(`User ${admin.username || admin.id}: ${error}`)
             }
@@ -169,8 +132,8 @@ export default defineHandler(async (event) => {
 
         if (results.sent === 0) {
             throw new HTTPError({
-                statusCode: 502,
-                statusMessage: 'Bad Gateway',
+                status: StatusCodes.BAD_REQUEST,
+                statusText: getReasonPhrase(StatusCodes.BAD_REQUEST),
                 message: 'Failed to deliver message to any admin users',
                 data: results,
             })
@@ -183,10 +146,10 @@ export default defineHandler(async (event) => {
             ...(results.failed > 0 && { errors: results.errors }),
         }
     } catch (error) {
-        console.error('Failed to deliver admin message to Discord', error)
+        logger('adminMessage').error('Failed to deliver admin message to Discord', error)
         throw new HTTPError({
-            statusCode: 502,
-            statusMessage: 'Bad Gateway',
+            status: StatusCodes.BAD_REQUEST,
+            statusText: getReasonPhrase(StatusCodes.BAD_REQUEST),
             message: 'Failed to deliver message to Discord',
             cause: error,
         })

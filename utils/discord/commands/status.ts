@@ -6,9 +6,9 @@ import {
     SlashCommandBuilder,
 } from 'discord.js'
 
-import type { DiscordCommand } from '../../types'
-
+import { logger } from '../../logger'
 import { getBotStatusHistory, saveBotStatus } from '../../services/statusService'
+import type { DiscordCommand } from '../../types'
 import { showPermissionPromptIfNeeded } from '../permissionPrompt'
 
 const activityTypeChoices = [
@@ -19,13 +19,9 @@ const activityTypeChoices = [
     { name: 'Competing', value: ActivityType.Competing },
 ]
 
-const activityTypeNames: Record<number, string> = {
-    [ActivityType.Playing]: 'Playing',
-    [ActivityType.Streaming]: 'Streaming',
-    [ActivityType.Listening]: 'Listening',
-    [ActivityType.Watching]: 'Watching',
-    [ActivityType.Competing]: 'Competing',
-}
+const activityTypeNames: Record<number, string> = Object.fromEntries(
+    activityTypeChoices.map((c) => [c.value, c.name])
+)
 
 export const statusCommand = {
     data: new SlashCommandBuilder()
@@ -105,7 +101,7 @@ async function handleSetStatus(interaction: ChatInputCommandInteraction) {
             `✅ Botのステータスを更新しました:\n**${activityTypeName}**: ${message}`
         )
     } catch (error) {
-        console.error('Failed to set status', error)
+        logger('status').error('Failed to set status', error)
         await interaction.editReply('ステータスの更新に失敗しました。もう一度お試しください。')
     }
 }
@@ -143,7 +139,7 @@ async function handleStatusHistory(interaction: ChatInputCommandInteraction) {
 
         await interaction.editReply({ embeds: [embed] })
     } catch (error) {
-        console.error('Failed to get status history', error)
+        logger('status').error('Failed to get status history', error)
         await interaction.editReply('ステータス履歴の取得に失敗しました。もう一度お試しください。')
     }
 }

@@ -5,9 +5,9 @@ import {
     SlashCommandBuilder,
 } from 'discord.js'
 
-import type { DiscordCommand } from '../../types'
-
+import { logger } from '../../logger'
 import { createApiKey, listApiKeysForUser, revokeApiKey } from '../../services/apiKeyService'
+import type { DiscordCommand } from '../../types'
 import { showPermissionPromptIfNeeded } from '../permissionPrompt'
 
 export const apiKeyCommand = {
@@ -78,7 +78,7 @@ async function handleCreateApiKey(interaction: ChatInputCommandInteraction) {
             content: `||${apiKey.rawKey}||`,
         })
     } catch (error) {
-        console.error('Failed to DM API key', error)
+        logger('apiKey').error('Failed to DM API key', error)
         await interaction.editReply(
             'APIキーをDMで送信できませんでした。DMを有効にして再試行してください。'
         )
@@ -122,7 +122,7 @@ async function handleListApiKeys(interaction: ChatInputCommandInteraction) {
 
         await interaction.editReply({ embeds: [embed] })
     } catch (error) {
-        console.error('Failed to list API keys', error)
+        logger('apiKey').error('Failed to list API keys', error)
         await interaction.editReply('APIキーリストの取得に失敗しました。もう一度お試しください。')
     }
 }
@@ -148,7 +148,7 @@ async function handleDeleteApiKey(interaction: ChatInputCommandInteraction) {
             `✅ APIキー「${keyToDelete.name}」(****${keyToDelete.lastFour})を削除しました。`
         )
     } catch (error) {
-        console.error('Failed to delete API key', error)
+        logger('apiKey').error('Failed to delete API key', error)
         await interaction.editReply('APIキーの削除に失敗しました。もう一度お試しください。')
     }
 }

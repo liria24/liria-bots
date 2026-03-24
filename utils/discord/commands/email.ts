@@ -5,9 +5,8 @@ import {
     SlashCommandBuilder,
 } from 'discord.js'
 
-import type { DiscordCommand } from '../../types'
-
 import { checkEmailsNow } from '../../emailMonitor'
+import { logger } from '../../logger'
 import {
     createEmailAccount,
     deleteEmailAccount,
@@ -16,6 +15,7 @@ import {
     listEmailAccounts,
     updateEmailAccountEnabled,
 } from '../../services/emailService'
+import type { DiscordCommand } from '../../types'
 import { showPermissionPromptIfNeeded } from '../permissionPrompt'
 
 export const emailCommand = {
@@ -136,7 +136,7 @@ async function handleListEmails(interaction: ChatInputCommandInteraction) {
 
         await interaction.editReply({ embeds: [embed] })
     } catch (error) {
-        console.error('Failed to list email accounts', error)
+        logger('email').error('Failed to list email accounts', error)
         await interaction.editReply('メールアカウントリストの取得に失敗しました。')
     }
 }
@@ -182,7 +182,7 @@ async function handleAddEmail(interaction: ChatInputCommandInteraction) {
             `✅ メールアカウント「${account.name}」(${account.email})を追加しました。`
         )
     } catch (error) {
-        console.error('Failed to create email account', error)
+        logger('email').error('Failed to create email account', error)
         await interaction.editReply(
             'メールアカウントの追加に失敗しました。入力内容を確認してください。'
         )
@@ -209,7 +209,7 @@ async function handleToggleEmail(interaction: ChatInputCommandInteraction) {
             `✅ メールアカウント「${account.name}」を${newStatus ? '有効' : '無効'}にしました。`
         )
     } catch (error) {
-        console.error('Failed to toggle email account', error)
+        logger('email').error('Failed to toggle email account', error)
         await interaction.editReply('メールアカウントの切り替えに失敗しました。')
     }
 }
@@ -231,7 +231,7 @@ async function handleDeleteEmail(interaction: ChatInputCommandInteraction) {
 
         await interaction.editReply(`✅ メールアカウント「${account.name}」を削除しました。`)
     } catch (error) {
-        console.error('Failed to delete email account', error)
+        logger('email').error('Failed to delete email account', error)
         await interaction.editReply('メールアカウントの削除に失敗しました。')
     }
 }
@@ -272,7 +272,7 @@ async function handleCheckNow(interaction: ChatInputCommandInteraction) {
 
         await interaction.editReply({ content: '', embeds: [embed] })
     } catch (error) {
-        console.error('Failed to check emails now', error)
+        logger('email').error('Failed to check emails now', error)
         await interaction.editReply('❌ メールチェック中にエラーが発生しました。')
     }
 }

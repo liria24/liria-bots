@@ -1,9 +1,8 @@
 import { ActivityType } from 'discord.js'
-import { defineHandler, HTTPError } from 'nitro/h3'
-import { useRuntimeConfig } from 'nitro/runtime-config'
 import { z } from 'zod'
 
 import { getDiscordBotController } from '../../utils/discord/bot'
+import { adminHandler } from '../../utils/eventHandler'
 import { saveBotStatus } from '../../utils/services/statusService'
 import { validateBody } from '../../utils/validateRequest'
 
@@ -23,14 +22,8 @@ const body = z.object({
         .default('Playing'),
 })
 
-export default defineHandler(async (event) => {
-    const config = useRuntimeConfig()
-
-    const authorization = event.req.headers.get('authorization')
-    if (authorization !== `Bearer ${config.key}`)
-        throw new HTTPError({ statusCode: 401, statusMessage: 'Unauthorized' })
-
-    const { message, activityType: activityTypeStr } = await validateBody(event, body)
+export default adminHandler(async () => {
+    const { message, activityType: activityTypeStr } = await validateBody(body)
     const activityType = activityTypeMap[activityTypeStr]
 
     const status = await saveBotStatus({

@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'bun:test'
+
 import { Client, Events, GatewayIntentBits } from 'discord.js'
 
 const testDiscordBotLogin = async (token: string): Promise<boolean> => {

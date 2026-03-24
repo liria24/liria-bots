@@ -1,5 +1,4 @@
 import type { DiscordCommand } from '../../types'
-
 import { apiKeyCommand } from './apiKey'
 import { emailCommand } from './email'
 import { helpCommand } from './help'

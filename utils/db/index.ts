@@ -1,16 +1,16 @@
-import type { LibSQLDatabase } from 'drizzle-orm/libsql'
-
-import { createClient } from '@libsql/client'
-import { createConsola } from 'consola'
-import { drizzle } from 'drizzle-orm/libsql'
-import { useRuntimeConfig } from 'nitro/runtime-config'
 import { mkdir } from 'node:fs/promises'
 import { dirname } from 'node:path'
 
+import { createClient } from '@libsql/client'
+import type { LibSQLDatabase } from 'drizzle-orm/libsql'
+import { drizzle } from 'drizzle-orm/libsql'
+import { useRuntimeConfig } from 'nitro/runtime-config'
+
+import { logger } from '../logger'
 import { relations } from './relations'
 import * as schema from './schema'
 
-const logger = createConsola({ defaults: { tag: 'db' } })
+const log = logger('db')
 
 const config = useRuntimeConfig()
 
@@ -27,10 +27,10 @@ export const getDb = async () => {
     const dbPath = config.sqlite.dbPath
 
     if (dbPath === ':memory:') {
-        logger.info('Using in-memory SQLite database')
+        log.info('Using in-memory SQLite database')
         sqliteClient = createClient({ url: ':memory:' })
     } else {
-        logger.info(`Initializing SQLite database at ${dbPath}`)
+        log.info(`Initializing SQLite database at ${dbPath}`)
 
         // Create directory if it doesn't exist
         const dir = dirname(dbPath)
@@ -43,7 +43,7 @@ export const getDb = async () => {
 
     db = drizzle({ client: sqliteClient, schema, relations })
 
-    logger.success('SQLite database initialized')
+    log.success('SQLite database initialized')
 
     return db
 }

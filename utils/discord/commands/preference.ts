@@ -5,8 +5,6 @@ import {
     SlashCommandBuilder,
 } from 'discord.js'
 
-import type { DiscordCommand } from '../../types'
-
 import { getCheckInterval, setCheckInterval } from '../../services/emailService'
 import {
     ensureUser,
@@ -14,6 +12,7 @@ import {
     getUserPermissionLevel,
     setAdminDmOptOut,
 } from '../../services/userService'
+import type { DiscordCommand } from '../../types'
 import { showPermissionPromptIfNeeded } from '../permissionPrompt'
 
 export const preferenceCommand = {

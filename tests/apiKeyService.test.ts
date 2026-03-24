@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'bun:test'
+
 import { nanoid } from 'nanoid'
 
 import { generateApiKeySecret } from '../utils/services/apiKeyService'

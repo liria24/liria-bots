@@ -6,6 +6,7 @@ import {
     EmbedBuilder,
 } from 'discord.js'
 
+import { logger } from '../../logger'
 import {
     createPermissionRequest,
     findPendingRequestByRequester,
@@ -106,7 +107,7 @@ export async function handlePermissionPromptButton(
                     savedMessageId = sentMessage.id
                 }
             } catch (dmError) {
-                console.error(`Failed to send DM to admin ${admin.id}:`, dmError)
+                logger('permissionPrompt').error(`Failed to send DM to admin ${admin.id}:`, dmError)
             }
         }
 

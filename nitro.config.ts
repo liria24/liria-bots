@@ -35,4 +35,8 @@ export default defineNitroConfig({
         asyncContext: true,
         openAPI: true,
     },
+
+    rolldownConfig: {
+        external: ['zlib-sync'],
+    },
 })

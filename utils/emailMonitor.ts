@@ -1,19 +1,19 @@
-import type { ImapMessage } from 'imap'
-import type { ParsedMail } from 'mailparser'
+import type { Readable } from 'node:stream'
 
 import { EmbedBuilder } from 'discord.js'
+import type { ImapMessage } from 'imap'
 import Imap from 'imap'
+import type { ParsedMail } from 'mailparser'
 import { simpleParser } from 'mailparser'
 
 import { getDiscordBotController } from './discord/bot'
+import { logger } from './logger'
 import {
     getCheckInterval,
     listEnabledEmailAccounts,
     updateEmailAccountLastChecked,
 } from './services/emailService'
 import { listUsersByPermission } from './services/userService'
-
-const logger = console
 
 interface EmailAccount {
     id: string
@@ -24,6 +24,8 @@ interface EmailAccount {
     imapUser: string
     imapPassword: string
 }
+
+const log = logger('emailMonitor')
 
 const checkEmailAccount = async (account: EmailAccount): Promise<number> => {
     return new Promise((resolve, reject) => {
@@ -45,7 +47,7 @@ const checkEmailAccount = async (account: EmailAccount): Promise<number> => {
                     return
                 }
 
-                // 未読メールを検索
+                // Search for unseen emails
                 imap.search(['UNSEEN'], async (err, results) => {
                     if (err) {
                         reject(err)
@@ -53,13 +55,13 @@ const checkEmailAccount = async (account: EmailAccount): Promise<number> => {
                     }
 
                     if (!results || results.length === 0) {
-                        logger.info(`No new emails for ${account.email}`)
+                        log.info(`No new emails for ${account.email}`)
                         imap.end()
                         resolve(0)
                         return
                     }
 
-                    logger.info(`Found ${results.length} new email(s) for ${account.email}`)
+                    log.info(`Found ${results.length} new email(s) for ${account.email}`)
                     messageCount = results.length
 
                     const fetch = imap.fetch(results, {
@@ -69,28 +71,27 @@ const checkEmailAccount = async (account: EmailAccount): Promise<number> => {
 
                     fetch.on('message', (msg: ImapMessage) => {
                         msg.on('body', (stream) => {
-                            // streamを適切な型にキャストして使用
-                            simpleParser(stream as never)
+                            simpleParser(stream as unknown as Readable)
                                 .then(async (parsed: ParsedMail) => {
                                     try {
                                         await forwardEmailToAdmins(account, parsed)
                                     } catch (error) {
-                                        logger.error(`Failed to forward email to admins:`, error)
+                                        log.error(`Failed to forward email to admins:`, error)
                                     }
                                 })
                                 .catch((err) => {
-                                    logger.error(`Failed to parse email:`, err)
+                                    log.error(`Failed to parse email:`, err)
                                 })
                         })
                     })
 
                     fetch.once('error', (err) => {
-                        logger.error(`Fetch error:`, err)
+                        log.error(`Fetch error:`, err)
                         reject(err)
                     })
 
                     fetch.once('end', () => {
-                        logger.info(`Finished processing emails for ${account.email}`)
+                        log.info(`Finished processing emails for ${account.email}`)
                         imap.end()
                     })
                 })
@@ -98,7 +99,7 @@ const checkEmailAccount = async (account: EmailAccount): Promise<number> => {
         })
 
         imap.once('error', (err) => {
-            logger.error(`IMAP connection error for ${account.email}:`, err)
+            log.error(`IMAP connection error for ${account.email}:`, err)
             reject(err)
         })
 
@@ -114,7 +115,7 @@ const forwardEmailToAdmins = async (account: EmailAccount, email: ParsedMail) =>
     const controller = getDiscordBotController()
 
     if (!controller || !controller.isReady()) {
-        logger.warn('Discord bot is not ready')
+        log.warn('Discord bot is not ready')
         return
     }
 
@@ -125,7 +126,7 @@ const forwardEmailToAdmins = async (account: EmailAccount, email: ParsedMail) =>
     const adminUsers = allAdminUsers.filter((user) => !user.adminDmOptOut)
 
     if (!adminUsers || adminUsers.length === 0) {
-        logger.warn('No admin users available to receive email')
+        log.warn('No admin users available to receive email')
         return
     }
 
@@ -162,9 +163,9 @@ const forwardEmailToAdmins = async (account: EmailAccount, email: ParsedMail) =>
         try {
             const user = await client.users.fetch(admin.id)
             await user.send({ embeds: [embed] })
-            logger.info(`Sent email notification to admin ${admin.username}`)
+            log.info(`Sent email notification to admin ${admin.username}`)
         } catch (error) {
-            logger.error(`Failed to send email notification to admin ${admin.id}:`, error)
+            log.error(`Failed to send email notification to admin ${admin.id}:`, error)
         }
     }
 }
@@ -172,29 +173,29 @@ const forwardEmailToAdmins = async (account: EmailAccount, email: ParsedMail) =>
 let emailCheckInterval: NodeJS.Timeout | null = null
 
 export const startEmailMonitoring = async () => {
-    logger.info('Starting email monitoring service')
+    log.info('Starting email monitoring service')
 
     const checkEmails = async () => {
         try {
             const accounts = await listEnabledEmailAccounts()
 
             if (accounts.length === 0) {
-                logger.info('No enabled email accounts to check')
+                log.info('No enabled email accounts to check')
                 return
             }
 
-            logger.info(`Checking ${accounts.length} email account(s)`)
+            log.info(`Checking ${accounts.length} email account(s)`)
 
             for (const account of accounts) {
                 try {
                     await checkEmailAccount(account)
                     await updateEmailAccountLastChecked(account.id)
                 } catch (error) {
-                    logger.error(`Failed to check email account ${account.email}:`, error)
+                    log.error(`Failed to check email account ${account.email}:`, error)
                 }
             }
         } catch (error) {
-            logger.error('Failed to check emails:', error)
+            log.error('Failed to check emails:', error)
         }
     }
 
@@ -208,7 +209,7 @@ export const startEmailMonitoring = async () => {
         }
 
         const intervalMinutes = await getCheckInterval()
-        logger.info(`Setting email check interval to ${intervalMinutes} minutes`)
+        log.info(`Setting email check interval to ${intervalMinutes} minutes`)
 
         emailCheckInterval = setInterval(checkEmails, intervalMinutes * 60 * 1000)
     }
@@ -223,7 +224,7 @@ export const stopEmailMonitoring = () => {
     if (emailCheckInterval) {
         clearInterval(emailCheckInterval)
         emailCheckInterval = null
-        logger.info('Stopped email monitoring service')
+        log.info('Stopped email monitoring service')
     }
 }
 
@@ -231,7 +232,7 @@ export const checkEmailsNow = async (): Promise<{ total: number; checked: number
     const accounts = await listEnabledEmailAccounts()
     let checked = 0
 
-    logger.info(`Manually checking ${accounts.length} email account(s)`)
+    log.info(`Manually checking ${accounts.length} email account(s)`)
 
     for (const account of accounts) {
         try {
@@ -239,7 +240,7 @@ export const checkEmailsNow = async (): Promise<{ total: number; checked: number
             await updateEmailAccountLastChecked(account.id)
             checked++
         } catch (error) {
-            logger.error(`Failed to check email account ${account.email}:`, error)
+            log.error(`Failed to check email account ${account.email}:`, error)
         }
     }
 
