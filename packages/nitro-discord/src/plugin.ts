@@ -17,10 +17,16 @@ import { getReasonPhrase, StatusCodes } from 'http-status-codes'
 import { definePlugin } from 'nitro'
 import type { EventHandler, H3Event } from 'nitro/h3'
 import { HTTPError, readBody } from 'nitro/h3'
-import type { Driver } from 'unstorage'
+import { useStorage } from 'nitro/storage'
 
-import { clearBotStatusStorage, getBotStatusStorage, setBotStatusStorage } from './botStatus.js'
-import { BotStatusStorage } from './botStatusStorage.js'
+import { discordCommands } from '#discord-commands'
+
+import {
+    BotStatusStorage,
+    clearBotStatusStorage,
+    getBotStatusStorage,
+    setBotStatusStorage,
+} from './botStatusStorage.js'
 import type { DiscordBotController } from './client.js'
 import {
     clearDiscordBotController,
@@ -43,7 +49,8 @@ declare module 'nitro/types' {
 
 export interface EmailMonitorConfig {
     enabled: boolean
-    driver: Driver
+    /** Nitro storage mount name. Defaults to `discord:emailMonitor`. */
+    storageName?: string
     onNewEmail: (params: {
         embed: EmbedBuilder
         account: EmailAccount
@@ -52,8 +59,8 @@ export interface EmailMonitorConfig {
 }
 
 export interface BotStatusConfig {
-    /** unstorage Driver for persisting status history. */
-    driver: Driver
+    /** Nitro storage mount name. Defaults to `discord:botStatus`. */
+    storageName?: string
     /**
      * Wrap the internal route handler with authentication/authorization.
      * e.g. `(inner) => adminHandler(({ event }) => inner(event))`
@@ -230,13 +237,12 @@ const handleStatusRoute = async (event: H3Event): Promise<unknown> => {
 }
 
 export const defineDiscordPlugin = (
-    commands: DiscordCommand[],
     hooks: DiscordPluginHooks = {},
     config?: DiscordPluginConfig
 ) => {
     let baseCommands = config?.emailMonitor
-        ? [...commands, createEmailCommand(config.permissionChecker)]
-        : commands
+        ? [...discordCommands, createEmailCommand(config.permissionChecker)]
+        : [...discordCommands]
     if (config?.botStatus) {
         baseCommands = [...baseCommands, createStatusCommand(config.permissionChecker)]
     }
@@ -269,7 +275,11 @@ export const defineDiscordPlugin = (
 
         // Initialize bot status storage early so it's available for the onReady handler
         if (config?.botStatus) {
-            setBotStatusStorage(new BotStatusStorage(config.botStatus.driver))
+            setBotStatusStorage(
+                new BotStatusStorage(
+                    useStorage(config.botStatus.storageName ?? 'discord:botStatus')
+                )
+            )
         }
 
         try {
@@ -335,12 +345,15 @@ export const defineDiscordPlugin = (
             }
 
             if (config?.emailMonitor) {
-                const monitor = createEmailMonitor(config.emailMonitor.driver, {
-                    onNewEmail: async (account, email) => {
-                        const embed = buildEmailEmbed(account, email)
-                        await config.emailMonitor!.onNewEmail({ embed, account, email })
-                    },
-                })
+                const monitor = createEmailMonitor(
+                    useStorage(config.emailMonitor.storageName ?? 'discord:emailMonitor'),
+                    {
+                        onNewEmail: async (account, email) => {
+                            const embed = buildEmailEmbed(account, email)
+                            await config.emailMonitor!.onNewEmail({ embed, account, email })
+                        },
+                    }
+                )
                 setEmailMonitor(monitor)
                 nitroApp.emailMonitor = monitor
                 if (config.emailMonitor.enabled) await monitor.start()

@@ -1,5 +1,4 @@
-import { createStorage } from 'unstorage'
-import type { Driver } from 'unstorage'
+import type { Storage } from 'unstorage'
 
 export interface BotStatusEntry {
     id: string
@@ -13,10 +12,10 @@ const MAX_HISTORY = 100
 const HISTORY_KEY = 'history'
 
 export class BotStatusStorage {
-    private storage: ReturnType<typeof createStorage>
+    private storage: Storage
 
-    constructor(driver: Driver) {
-        this.storage = createStorage({ driver })
+    constructor(storage: Storage) {
+        this.storage = storage
     }
 
     async save(entry: Omit<BotStatusEntry, 'id' | 'createdAt'>): Promise<BotStatusEntry> {
@@ -40,4 +39,14 @@ export class BotStatusStorage {
         const history = (await this.storage.getItem<BotStatusEntry[]>(HISTORY_KEY)) ?? []
         return history.slice(0, limit)
     }
+}
+
+let botStatusStorage: BotStatusStorage | undefined
+
+export const getBotStatusStorage = (): BotStatusStorage | undefined => botStatusStorage
+export const setBotStatusStorage = (storage: BotStatusStorage): void => {
+    botStatusStorage = storage
+}
+export const clearBotStatusStorage = (): void => {
+    botStatusStorage = undefined
 }

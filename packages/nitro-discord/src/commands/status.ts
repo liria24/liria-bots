@@ -7,7 +7,7 @@ import {
     SlashCommandBuilder,
 } from 'discord.js'
 
-import { getBotStatusStorage } from '../botStatus.js'
+import { getBotStatusStorage } from '../botStatusStorage.js'
 import type { DiscordCommand, PermissionChecker } from '../types.js'
 
 const log = consola.withTag('status')

@@ -5,8 +5,7 @@ import type { ImapMessage } from 'imap'
 import Imap from 'imap'
 import type { ParsedMail } from 'mailparser'
 import { simpleParser } from 'mailparser'
-import type { Driver } from 'unstorage'
-import { createStorage } from 'unstorage'
+import type { Storage } from 'unstorage'
 
 import { EmailMonitorStorage } from './storage.js'
 import type { EmailAccount, EmailMonitorDeps } from './types.js'
@@ -95,8 +94,8 @@ const checkEmailAccount = async (account: EmailAccount, deps: EmailMonitorDeps):
         imap.connect()
     })
 
-export const createEmailMonitor = (driver: Driver, deps: EmailMonitorDeps) => {
-    const emailStorage = new EmailMonitorStorage(createStorage({ driver }))
+export const createEmailMonitor = (storage: Storage, deps: EmailMonitorDeps) => {
+    const emailStorage = new EmailMonitorStorage(storage)
     let emailCheckInterval: ReturnType<typeof setInterval> | null = null
 
     const checkEmails = async () => {

@@ -24,16 +24,20 @@ export default defineNitroConfig({
         emailMonitor: {
             enabled: import.meta.env.EMAIL_MONITOR === 'true',
         },
-        storagePath: {
-            emailMonitor: import.meta.env.EMAIL_STORAGE_PATH || './data/email-monitor.db',
-            discordStatus: import.meta.env.DISCORD_STATUS_PATH || './data/discord-status.db',
-        },
-        public: {
-            appName: 'Liria Bot',
-        },
     },
 
     modules: [createDiscordCommandsModule()],
+
+    storage: {
+        'discord:emailMonitor': {
+            driver: 'fs-lite',
+            base: import.meta.env.EMAIL_STORAGE_PATH || './data/email-monitor',
+        },
+        'discord:botStatus': {
+            driver: 'fs-lite',
+            base: import.meta.env.DISCORD_STATUS_PATH || './data/discord-status',
+        },
+    },
 
     routeRules: {
         '/': { redirect: import.meta.env.DISCORD_INSTALL_LINK },

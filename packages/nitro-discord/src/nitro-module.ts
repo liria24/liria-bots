@@ -1,4 +1,4 @@
-import { mkdirSync, readdirSync, writeFileSync } from 'node:fs'
+import { readdirSync } from 'node:fs'
 import { pathToFileURL } from 'node:url'
 
 import type { Nitro } from 'nitro/types'
@@ -30,19 +30,4 @@ export const createDiscordCommandsModule = (options: DiscordCommandsModuleOption
                 .join('\n')
             return `${imports}\nexport const discordCommands = [${files.map((_, i) => `cmd${i}`).join(', ')}]`
         }
-
-        nitro.hooks.hook('types:extend', (types) => {
-            const typesDir =
-                nitro.options.typescript.generatedTypesDir ??
-                resolve(nitro.options.rootDir, 'node_modules/.nitro/types')
-            mkdirSync(typesDir, { recursive: true })
-            writeFileSync(
-                resolve(typesDir, 'discord-commands.d.ts'),
-                `declare module '#discord-commands' {\n    export const discordCommands: DiscordCommand[]\n}\n`
-            )
-            if (types.tsConfig) {
-                types.tsConfig.include ??= []
-                types.tsConfig.include.push('./discord-commands.d.ts')
-            }
-        })
     }

@@ -1,13 +1,7 @@
 import { defineDiscordPlugin, getDiscordBotController } from '@liria/nitro-discord'
-import { createDatabase } from 'db0'
-import libSql from 'db0/connectors/libsql/node'
 import { useRuntimeConfig } from 'nitro/runtime-config'
-import db0Driver from 'unstorage/drivers/db0'
-
-import { discordCommands } from '#discord-commands'
 
 export default defineDiscordPlugin(
-    discordCommands,
     {
         async onButton(interaction) {
             if (await handlePermissionRequestButton(interaction)) return
@@ -21,11 +15,6 @@ export default defineDiscordPlugin(
         },
         emailMonitor: {
             enabled: useRuntimeConfig().emailMonitor.enabled,
-            driver: db0Driver({
-                database: createDatabase(
-                    libSql({ url: `file:${useRuntimeConfig().storagePath.emailMonitor}` })
-                ),
-            }),
             onNewEmail: async ({ embed }) => {
                 const controller = getDiscordBotController()
 
@@ -60,11 +49,6 @@ export default defineDiscordPlugin(
             },
         },
         botStatus: {
-            driver: db0Driver({
-                database: createDatabase(
-                    libSql({ url: `file:${useRuntimeConfig().storagePath.discordStatus}` })
-                ),
-            }),
             routeWrapper: (inner) => adminHandler(({ event }) => inner(event)),
         },
         permissionChecker: showPermissionPromptIfNeeded,

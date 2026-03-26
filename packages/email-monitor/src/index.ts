@@ -2,3 +2,4 @@ export type { EmailAccount, CreateEmailAccountInput, EmailMonitorDeps } from './
 export type { ParsedMail } from 'mailparser'
 export type { Driver } from 'unstorage'
 export { createEmailMonitor } from './monitor.js'
+export type { Storage } from 'unstorage'

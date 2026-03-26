@@ -6,6 +6,6 @@ export default defineConfig({
     dts: true,
     clean: true,
     deps: {
-        neverBundle: ['unstorage', '@liria/email-monitor'],
+        neverBundle: ['unstorage', '@liria/email-monitor', '#discord-commands'],
     },
 })
