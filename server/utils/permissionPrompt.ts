@@ -4,7 +4,7 @@ import {
     ButtonStyle,
     type ChatInputCommandInteraction,
     EmbedBuilder,
-} from 'discord.js'
+} from '@liria/nitro-discord/discord.js'
 
 export const showPermissionPromptIfNeeded = async (
     interaction: ChatInputCommandInteraction,

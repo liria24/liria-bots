@@ -1,6 +1,9 @@
+import { consola } from 'consola'
 import type { Client } from 'discord.js'
 import { getReasonPhrase, StatusCodes } from 'http-status-codes'
 import { HTTPError } from 'nitro/h3'
+
+const log = consola.withTag('discordClient')
 
 export interface DiscordBotController {
     client: Client
@@ -28,7 +31,7 @@ export const requireReadyDiscordClient = (): Client<true> => {
     const controller = getDiscordBotController()
 
     if (!controller) {
-        logger('discordClient').error('Discord bot controller is not available')
+        log.error('Discord bot controller is not available')
         throw new HTTPError({
             status: StatusCodes.SERVICE_UNAVAILABLE,
             statusText: getReasonPhrase(StatusCodes.SERVICE_UNAVAILABLE),
@@ -37,7 +40,7 @@ export const requireReadyDiscordClient = (): Client<true> => {
     }
 
     if (!controller.isReady()) {
-        logger('discordClient').warn('Discord bot client is not ready to send messages')
+        log.warn('Discord bot client is not ready to send messages')
         throw new HTTPError({
             status: StatusCodes.SERVICE_UNAVAILABLE,
             statusText: getReasonPhrase(StatusCodes.SERVICE_UNAVAILABLE),

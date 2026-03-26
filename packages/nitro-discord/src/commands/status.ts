@@ -1,3 +1,4 @@
+import { consola } from 'consola'
 import {
     ActivityType,
     type ChatInputCommandInteraction,
@@ -5,6 +6,11 @@ import {
     MessageFlags,
     SlashCommandBuilder,
 } from 'discord.js'
+
+import { getBotStatusStorage } from '../botStatus.js'
+import type { DiscordCommand, PermissionChecker } from '../types.js'
+
+const log = consola.withTag('status')
 
 const activityTypeChoices = [
     { name: 'Playing', value: ActivityType.Playing },
@@ -18,7 +24,7 @@ const activityTypeNames: Record<number, string> = Object.fromEntries(
     activityTypeChoices.map((c) => [c.value, c.name])
 )
 
-export const statusCommand = {
+export const createStatusCommand = (checker?: PermissionChecker): DiscordCommand => ({
     data: new SlashCommandBuilder()
         .setName('status')
         .setDescription('Botのステータスを管理します (管理者のみ)')
@@ -54,14 +60,12 @@ export const statusCommand = {
                         .setMaxValue(25)
                 )
         ) as SlashCommandBuilder,
+
     async execute(interaction: ChatInputCommandInteraction) {
         await interaction.deferReply({ flags: MessageFlags.Ephemeral })
 
-        // 権限チェック - admin権限がない場合はプロンプトを表示
-        const lacksPermission = await showPermissionPromptIfNeeded(interaction, 'admin')
-        if (lacksPermission) {
-            return
-        }
+        const lacksPermission = (await checker?.(interaction, 'admin')) ?? false
+        if (lacksPermission) return
 
         const subcommand = interaction.options.getSubcommand()
 
@@ -71,41 +75,36 @@ export const statusCommand = {
             await handleStatusHistory(interaction)
         }
     },
-} satisfies DiscordCommand
+
+    showInHelp: checker ? async (interaction) => !(await checker(interaction, 'admin')) : undefined,
+})
 
 async function handleSetStatus(interaction: ChatInputCommandInteraction) {
+    const storage = getBotStatusStorage()
     const message = interaction.options.getString('message', true)
     const activityType = interaction.options.getInteger('type') ?? ActivityType.Playing
 
     try {
-        interaction.client.user?.setActivity(message, {
-            type: activityType,
-        })
+        interaction.client.user?.setActivity(message, { type: activityType })
 
-        // ステータスをデータベースに保存
-        await saveBotStatus({
-            message,
-            activityType,
-            setBy: interaction.user.id,
-        })
+        await storage?.save({ message, activityType, setBy: interaction.user.id })
 
-        const activityTypeName =
-            activityTypeChoices.find((c) => c.value === activityType)?.name ?? 'Playing'
-
+        const activityTypeName = activityTypeNames[activityType] ?? 'Playing'
         await interaction.editReply(
             `✅ Botのステータスを更新しました:\n**${activityTypeName}**: ${message}`
         )
     } catch (error) {
-        logger('status').error('Failed to set status', error)
+        log.error('Failed to set status', error)
         await interaction.editReply('ステータスの更新に失敗しました。もう一度お試しください。')
     }
 }
 
 async function handleStatusHistory(interaction: ChatInputCommandInteraction) {
+    const storage = getBotStatusStorage()
     const limit = interaction.options.getInteger('limit') ?? 10
 
     try {
-        const history = await getBotStatusHistory(limit)
+        const history = await storage?.getHistory(limit)
 
         if (!history || history.length === 0) {
             await interaction.editReply('ステータス変更履歴がありません。')
@@ -120,23 +119,21 @@ async function handleStatusHistory(interaction: ChatInputCommandInteraction) {
 
         for (const status of history) {
             const typeName = activityTypeNames[status.activityType] ?? 'Unknown'
-            const username = status.setByUser?.username ?? status.setBy ?? 'Unknown'
-            const date = status.createdAt.toLocaleString('ja-JP', {
+            const setBy = status.setBy ? `<@${status.setBy}>` : 'API'
+            const date = new Date(status.createdAt).toLocaleString('ja-JP', {
                 timeZone: 'Asia/Tokyo',
             })
 
             embed.addFields({
                 name: `${typeName}: ${status.message}`,
-                value: `設定者: ${username}\n日時: ${date}`,
+                value: `設定者: ${setBy}\n日時: ${date}`,
                 inline: false,
             })
         }
 
         await interaction.editReply({ embeds: [embed] })
     } catch (error) {
-        logger('status').error('Failed to get status history', error)
+        log.error('Failed to get status history', error)
         await interaction.editReply('ステータス履歴の取得に失敗しました。もう一度お試しください。')
     }
 }
-
-export type StatusCommand = typeof statusCommand

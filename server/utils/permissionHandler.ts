@@ -5,7 +5,7 @@ import {
     ButtonStyle,
     EmbedBuilder,
     MessageFlags,
-} from 'discord.js'
+} from '@liria/nitro-discord/discord.js'
 
 const PERM_PREFIX = 'perm-request'
 

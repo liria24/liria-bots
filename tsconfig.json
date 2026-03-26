@@ -2,6 +2,7 @@
     "extends": "nitro/tsconfig",
     "include": [
         "node_modules/.nitro/types/nitro-imports.d.ts",
+        "node_modules/.nitro/types/discord-commands.d.ts",
         "server"
     ]
 }

@@ -1,11 +1,12 @@
+import type { DiscordCommand } from '@liria/nitro-discord'
 import {
     type ChatInputCommandInteraction,
     EmbedBuilder,
     MessageFlags,
     SlashCommandBuilder,
-} from 'discord.js'
+} from '@liria/nitro-discord/discord.js'
 
-export const apiKeyCommand = {
+export default {
     data: new SlashCommandBuilder()
         .setName('api-key')
         .setDescription('APIキーを管理します')
@@ -44,6 +45,10 @@ export const apiKeyCommand = {
         if (subcommand === 'create') await handleCreateApiKey(interaction)
         else if (subcommand === 'list') await handleListApiKeys(interaction)
         else if (subcommand === 'delete') await handleDeleteApiKey(interaction)
+    },
+    showInHelp: async (interaction) => {
+        const permission = await getUserPermissionLevel(interaction.user.id)
+        return permission === 'granted' || permission === 'admin'
     },
 } satisfies DiscordCommand
 
@@ -141,5 +146,3 @@ const handleDeleteApiKey = async (interaction: ChatInputCommandInteraction) => {
         await interaction.editReply('APIキーの削除に失敗しました。もう一度お試しください。')
     }
 }
-
-export type ApiKeyCommand = typeof apiKeyCommand

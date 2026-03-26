@@ -1,4 +1,5 @@
-import type { MessageCreateOptions } from 'discord.js'
+import { requireReadyDiscordClient } from '@liria/nitro-discord'
+import type { MessageCreateOptions } from '@liria/nitro-discord/discord.js'
 import { getReasonPhrase, StatusCodes } from 'http-status-codes'
 import { HTTPError } from 'nitro/h3'
 import { z } from 'zod'

@@ -115,42 +115,5 @@ export const botStatuses = sqliteTable(
     ]
 )
 
-export const emailAccounts = sqliteTable(
-    'email_accounts',
-    {
-        id: text()
-            .primaryKey()
-            .$default(() => nanoid()),
-        name: text().notNull(),
-        email: text().notNull(),
-        imapHost: text('imap_host').notNull(),
-        imapPort: integer('imap_port').notNull().default(993),
-        imapUser: text('imap_user').notNull(),
-        imapPassword: text('imap_password').notNull(),
-        enabled: integer('enabled', { mode: 'boolean' }).notNull().default(true),
-        lastCheckedAt: integer('last_checked_at', { mode: 'timestamp' }),
-        createdAt: integer('created_at', { mode: 'timestamp' })
-            .notNull()
-            .$default(() => /* @__PURE__ */ new Date()),
-        updatedAt: integer('updated_at', { mode: 'timestamp' })
-            .notNull()
-            .$default(() => /* @__PURE__ */ new Date())
-            .$onUpdate(() => /* @__PURE__ */ new Date()),
-    },
-    (table) => [
-        index('email_accounts_enabled_idx').on(table.enabled),
-        index('email_accounts_last_checked_idx').on(table.lastCheckedAt),
-    ]
-)
-
-export const emailCheckSettings = sqliteTable('email_check_settings', {
-    id: text().primaryKey().default('singleton'),
-    checkIntervalMinutes: integer('check_interval_minutes').notNull().default(30),
-    updatedAt: integer('updated_at', { mode: 'timestamp' })
-        .notNull()
-        .$default(() => /* @__PURE__ */ new Date())
-        .$onUpdate(() => /* @__PURE__ */ new Date()),
-})
-
 export type PermissionLevel = (typeof permissionLevelValues)[number]
 export type PermissionRequestStatus = (typeof permissionRequestStatusValues)[number]

@@ -1,11 +1,13 @@
+import type { DiscordCommand } from '@liria/nitro-discord'
+import { getEmailMonitor } from '@liria/nitro-discord'
 import {
     type ChatInputCommandInteraction,
     EmbedBuilder,
     MessageFlags,
     SlashCommandBuilder,
-} from 'discord.js'
+} from '@liria/nitro-discord/discord.js'
 
-export const preferenceCommand = {
+export default {
     data: new SlashCommandBuilder()
         .setName('preference')
         .setDescription('個人設定を管理します')
@@ -52,18 +54,20 @@ export const preferenceCommand = {
             content: '無効なサブコマンドです。',
         })
     },
+    showInHelp: async (interaction) =>
+        (await getUserPermissionLevel(interaction.user.id)) === 'admin',
 } satisfies DiscordCommand
 
-async function handleShow(
+const handleShow = async (
     interaction: ChatInputCommandInteraction,
     permission: string,
     isAdmin: boolean
-) {
+) => {
     const hasPermission = permission === 'granted' || isAdmin
 
     // 現在の設定を取得
     const dmOptOut = isAdmin ? await getAdminDmOptOut(interaction.user.id) : false
-    const emailCheckInterval = await getCheckInterval()
+    const emailCheckInterval = await getEmailMonitor()?.getCheckInterval()
 
     const embed = new EmbedBuilder()
         .setTitle('⚙️ 個人設定')
@@ -101,7 +105,7 @@ async function handleShow(
     })
 }
 
-async function handleSet(interaction: ChatInputCommandInteraction, isAdmin: boolean) {
+const handleSet = async (interaction: ChatInputCommandInteraction, isAdmin: boolean) => {
     // 権限チェック - admin権限がない場合はプロンプトを表示
     if (!isAdmin) {
         const lacksPermission = await showPermissionPromptIfNeeded(interaction, 'admin')
@@ -140,7 +144,7 @@ async function handleSet(interaction: ChatInputCommandInteraction, isAdmin: bool
             return
         }
 
-        await setCheckInterval(minutes)
+        await getEmailMonitor()?.setCheckInterval(minutes)
 
         await interaction.editReply({
             content: `✅ メールチェック間隔を **${minutes}分** に設定しました。`,
@@ -151,5 +155,3 @@ async function handleSet(interaction: ChatInputCommandInteraction, isAdmin: bool
         })
     }
 }
-
-export type PreferenceCommand = typeof preferenceCommand

@@ -1,3 +1,4 @@
+import { createDiscordCommandsModule } from '@liria/nitro-discord/nitro-module'
 import { defineNitroConfig } from 'nitro/config'
 
 export default defineNitroConfig({
@@ -10,7 +11,7 @@ export default defineNitroConfig({
     preset: 'node-server',
 
     runtimeConfig: {
-        key: import.meta.env.KEY,
+        key: import.meta.env.KEY || '',
         sqlite: {
             dbPath: import.meta.env.SQLITE_DB_PATH || './data/sqlite.db',
         },
@@ -20,13 +21,19 @@ export default defineNitroConfig({
             guildId: import.meta.env.DISCORD_GUILD_ID || '',
             installLink: import.meta.env.DISCORD_INSTALL_LINK || '',
         },
-        email: {
-            monitor: import.meta.env.EMAIL_MONITOR === 'true',
+        emailMonitor: {
+            enabled: import.meta.env.EMAIL_MONITOR === 'true',
+        },
+        storagePath: {
+            emailMonitor: import.meta.env.EMAIL_STORAGE_PATH || './data/email-monitor.db',
+            discordStatus: import.meta.env.DISCORD_STATUS_PATH || './data/discord-status.db',
         },
         public: {
-            appName: 'Discord Bot',
+            appName: 'Liria Bot',
         },
     },
+
+    modules: [createDiscordCommandsModule()],
 
     routeRules: {
         '/': { redirect: import.meta.env.DISCORD_INSTALL_LINK },
