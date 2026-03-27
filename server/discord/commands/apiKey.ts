@@ -54,6 +54,18 @@ export default {
 
 const handleCreateApiKey = async (interaction: ChatInputCommandInteraction) => {
     const name = interaction.options.getString('name') || undefined
+
+    if (name) {
+        const existingKeys = await listApiKeysForUser(interaction.user.id)
+        const conflict = existingKeys.some((key) => key.name === name)
+        if (conflict) {
+            await interaction.editReply(
+                `同じ名前「${name}」のAPIキーがすでに存在します。別の名前を指定してください。`
+            )
+            return
+        }
+    }
+
     const apiKey = await createApiKey(interaction.user.id, name)
 
     const dmEmbed = new EmbedBuilder()
